@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShOter - Cybernetic Survival</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --accent: #00f3ff; --accent-glow: rgba(0, 243, 255, 0.5);
+        --danger: #ff0055; --danger-glow: rgba(255, 0, 85, 0.5);
+        --bg-dark: #0a0a12; --bg-panel: rgba(16, 20, 35, 0.95);
+    }
+    body {
+        margin: 0; overflow: hidden; background: #000;
+        font-family: 'Orbitron', sans-serif; color: #fff; user-select: none;
+    }
+    canvas { display: block; }
+    #ui-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; }
+
+    /* HUD Styles */
+    .hud-bar {
+        position: absolute; top: 20px;
+        background: rgba(0,0,0,0.6); border: 2px solid #333;
+        padding: 10px 20px; border-radius: 15px;
+        display: flex; align-items: center; gap: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        font-weight: 700; letter-spacing: 1px;
+    }
+    #hud-hp { left: 20px; border-color: var(--danger); color: var(--danger); }
+    #hud-wave { left: 50%; transform: translateX(-50%); border-color: var(--accent); color: var(--accent); font-size: 24px; }
+    #hud-cash { right: 20px; border-color: #ffd700; color: #ffd700; }
+
+    /* Menu Styles */
+    .menu-screen {
+        position: absolute; top:0; left:0; width:100%; height:100%;
+        background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        pointer-events: auto; transition: opacity 0.5s; z-index: 100;
+    }
+    .menu-bg-grid {
+        position: absolute; width: 200%; height: 200%;
+        background-image: linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px);
+        background-size: 50px 50px;
+        transform: perspective(500px) rotateX(60deg);
+        animation: gridMove 20s linear infinite; opacity: 0.3;
+    }
+    @keyframes gridMove { from { transform: perspective(500px) rotateX(60deg) translateY(0); } to { transform: perspective(500px) rotateX(60deg) translateY(50px); } }
+
+    h1.title {
+        font-size: 100px; font-weight: 900; margin: 0;
+        background: linear-gradient(to bottom, #fff, var(--accent));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 30px var(--accent-glow));
+        letter-spacing: 10px; position: relative; z-index: 2;
+    }
+    h1.title span { color: var(--danger); -webkit-text-fill-color: var(--danger); }
+
+    .btn {
+        position: relative; z-index: 2;
+        background: transparent; color: var(--accent);
+        border: 3px solid var(--accent); padding: 15px 60px;
+        font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: bold;
+        cursor: pointer; margin: 10px; transition: all 0.3s ease;
+        clip-path: polygon(15% 0, 100% 0, 100% 70%, 85% 100%, 0 100%, 0 30%);
+    }
+    .btn:hover {
+        background: var(--accent); color: #000;
+        box-shadow: 0 0 30px var(--accent-glow);
+        transform: scale(1.05);
+    }
+    .btn.danger { border-color: var(--danger); color: var(--danger); }
+    .btn.danger:hover { background: var(--danger); color: #fff; box-shadow: 0 0 30px var(--danger-glow); }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* Shop & Settings */
+    #shop-tabs { display: flex; gap: 10px; margin-bottom: 20px; z-index: 2; }
+    .tab-btn { padding: 10px 30px; font-size: 18px; border: 2px solid #333; color: #888; background: var(--bg-panel); cursor: pointer; }
+    .tab-btn.active { border-color: var(--accent); color: var(--accent); }
+
+    #shop-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px; width: 80%; max-width: 1100px; max-height: 55vh;
+        overflow-y: auto; padding: 20px; z-index: 2; position: relative;
+    }
+    .shop-card {
+        background: var(--bg-panel); border: 2px solid #333; padding: 20px;
+        border-radius: 10px; text-align: center; transition: 0.3s;
+        display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .shop-card:hover { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+
+    .setting-row {
+        display: flex; justify-content: space-between; align-items: center;
+        width: 500px; padding: 20px; background: var(--bg-panel);
+        border: 2px solid #333; margin: 10px; z-index: 2; font-size: 24px;
+    }
+
+    .hidden { opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="ui-layer">
+    <div id="hud-hp" class="hud-bar">HP: <span id="val-hp">100</span>%</div>
+    <div id="hud-wave" class="hud-bar"><span data-txt="wave">WAVE</span> <span id="val-wave">1</span></div>
+    <div id="hud-cash" class="hud-bar">$<span id="val-cash">0</span></div>
+</div>
+
+<!-- MAIN MENU -->
+<div id="main-menu" class="menu-screen">
+    <div class="menu-bg-grid"></div>
+    <h1 class="title">Sh<span>O</span>ter</h1>
+    <p style="font-size: 20px; color: #aaa; margin-bottom: 50px; z-index: 2; letter-spacing: 5px;">CYBERNETIC SURVIVAL</p>
+    <button class="btn" onclick="startGame()" data-txt="deploy">DEPLOY</button>
+    <button class="btn" onclick="openSettings()" style="font-size: 18px; padding: 10px 40px;" data-txt="settings">SETTINGS</button>
+    <div style="margin-top: 40px; color: #666; z-index: 2;">[WASD / ARROWS] MOVE // [MOUSE] AIM & FIRE</div>
+</div>
+
+<!-- SETTINGS MENU -->
+<div id="settings-menu" class="menu-screen hidden">
+    <h2 style="font-size: 50px; color: var(--accent); margin-bottom: 40px; z-index: 2;" data-txt="settings">SETTINGS</h2>
+    <div class="setting-row">
+        <span data-txt="audio">AUDIO</span>
+        <button id="btn-audio" class="btn" onclick="toggleAudio()" style="margin:0; padding: 10px 30px; width: 150px;">ON</button>
+    </div>
+    <div class="setting-row">
+        <span data-txt="lang">LANGUAGE</span>
+        <button id="btn-lang" class="btn" onclick="toggleLang()" style="margin:0; padding: 10px 30px; width: 150px;">EN</button>
+    </div>
+    <button class="btn danger" onclick="closeSettings()" style="margin-top: 40px;" data-txt="back">BACK</button>
+</div>
+
+<!-- SHOP MENU -->
+<div id="shop-menu" class="menu-screen hidden">
+    <div class="menu-bg-grid" style="animation-direction: reverse;"></div>
+    <h2 style="font-size: 40px; color: var(--accent); margin-bottom: 10px; z-index: 2;" data-txt="armory">ARMORY</h2>
+    <div style="color: #ffd700; font-size: 24px; margin-bottom: 20px; z-index: 2;"><span data-txt="credits">CREDITS</span>: $<span id="shop-cash">0</span></div>
+    
+    <div id="shop-tabs">
+        <button class="tab-btn active" onclick="switchTab('w')" data-txt="weapons">WEAPONS</button>
+        <button class="tab-btn" onclick="switchTab('u')" data-txt="upgrades">UPGRADES</button>
+        <button class="tab-btn" onclick="switchTab('s')" data-txt="skins">SKINS</button>
+    </div>
+
+    <div id="shop-grid"></div>
+    <button class="btn" style="background:var(--accent); color:#000; margin-top:20px;" onclick="nextWave()" data-txt="next_wave">NEXT WAVE >></button>
+</div>
+
+<!-- GAME OVER -->
+<div id="game-over" class="menu-screen hidden">
+    <h1 class="title" style="font-size: 80px;" data-txt="terminated">TERMINATED</h1>
+    <h2 style="color: #fff; z-index: 2;"><span data-txt="waves_cleared">WAVES CLEARED</span>: <span id="final-wave">0</span></h2>
+    <button class="btn danger" onclick="location.reload()" data-txt="reboot">REBOOT SYSTEM</button>
+</div>
+
+<script>
+/* ================= GLOBAL SETUP & SETTINGS ================= */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+window.onresize = resize; resize();
+
+// LOCALIZATION & SETTINGS
+const LANG = {
+    en: { deploy:'DEPLOY', settings:'SETTINGS', back:'BACK', audio:'AUDIO', lang:'LANGUAGE', armory:'ARMORY', credits:'CREDITS', weapons:'WEAPONS', upgrades:'UPGRADES', skins:'SKINS', next_wave:'NEXT WAVE >>', terminated:'TERMINATED', waves_cleared:'WAVES CLEARED', reboot:'REBOOT SYSTEM', wave:'WAVE', equip:'EQUIP', equipped:'EQUIPPED', buy:'BUY', owned:'OWNED' },
+    pt: { deploy:'JOGAR', settings:'CONFIGURAÇÕES', back:'VOLTAR', audio:'ÁUDIO', lang:'IDIOMA', armory:'ARSENAL', credits:'CRÉDITOS', weapons:'ARMAS', upgrades:'MELHORIAS', skins:'VISUAIS', next_wave:'PRÓXIMA ONDA >>', terminated:'TERMINADO', waves_cleared:'ONDAS VENCIDAS', reboot:'REINICIAR', wave:'ONDA', equip:'EQUIPAR', equipped:'EQUIPADO', buy:'COMPRAR', owned:'POSSUÍDO' }
+};
+
+let SETTINGS = JSON.parse(localStorage.getItem('shoter_settings')) || { audio: true, lang: 'en' };
+function saveSettings() { localStorage.setItem('shoter_settings', JSON.stringify(SETTINGS)); applySettings(); }
+function applySettings() {
+    document.getElementById('btn-audio').innerText = SETTINGS.audio ? 'ON' : 'OFF';
+    document.getElementById('btn-lang').innerText = SETTINGS.lang === 'en' ? 'EN' : 'PT-BR';
+    document.querySelectorAll('[data-txt]').forEach(el => el.innerText = LANG[SETTINGS.lang][el.getAttribute('data-txt')] || el.innerText);
+}
+function toggleAudio() { SETTINGS.audio = !SETTINGS.audio; saveSettings(); }
+function toggleLang() { SETTINGS.lang = SETTINGS.lang === 'en' ? 'pt' : 'en'; saveSettings(); }
+function openSettings() { document.getElementById('main-menu').classList.add('hidden'); document.getElementById('settings-menu').classList.remove('hidden'); }
+function closeSettings() { document.getElementById('settings-menu').classList.add('hidden'); document.getElementById('main-menu').classList.remove('hidden'); }
+
+applySettings(); // Init text
+
+// AUDIO SYSTEM
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function sfx(freq, type, dur, vol=0.1, slide=0) {
+    if(!SETTINGS.audio) return;
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    if(slide) osc.frequency.linearRampToValueAtTime(freq+slide, audioCtx.currentTime+dur);
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
+    osc.start(); osc.stop(audioCtx.currentTime+dur);
+}
+
+/* ================= GAME STATE ================= */
+const GAME = { state: 'menu', wave: 0, cash: 0, spawnTimer: 0, toSpawn: 0, active: 0, shopTab: 'w' };
+const KEYS = {}, MOUSE = {x:W/2, y:H/2, down:false};
+window.onkeydown=e=>KEYS[e.code]=true; window.onkeyup=e=>KEYS[e.code]=false;
+window.onmousemove=e=>{MOUSE.x=e.clientX; MOUSE.y=e.clientY};
+window.onmousedown=()=>MOUSE.down=true; window.onmouseup=()=>MOUSE.down=false;
+
+const PLAYER = { x:W/2, y:H/2, r:15, hp:100, maxHp:100, speed:5, wIndex:0, sIndex:0, lastShot:0, angle:0 };
+
+// DATA
+const WEAPONS = [
+    { name:'PISTOL', dmg:25, rate:300, spd:18, color:'#0ff', unlocked:true, price:0 },
+    { name:'SHOTGUN', dmg:15, rate:800, spd:18, color:'#f90', unlocked:false, price:600, count:6, spread:0.3 },
+    { name:'PLASMA RIFLE', dmg:20, rate:100, spd:22, color:'#f0f', unlocked:false, price:1500, auto:true },
+    { name:'RAILGUN', dmg:200, rate:1500, spd:50, color:'#0f0', unlocked:false, price:3000, pen:10 }
+];
+const UPGRADES = [
+    { name:'NANOBOTS', price:150, heal:40, desc:'REPAIR 40% HP' },
+    { name:'SHIELD CORE', price:400, maxHp:30, desc:'+30 MAX HP' },
+    { name:'OVERCLOCK', price:600, speed:0.8, desc:'+MOVEMENT SPD' }
+];
+const SKINS = [
+    { name:'DEFAULT', price:0, unlocked:true, body:'#eee', ring:'#fff' },
+    { name:'STEALTH', price:1000, unlocked:false, body:'#222', ring:'#f00' },
+    { name:'MIDAS', price:2500, unlocked:false, body:'#ffd700', ring:'#ffaa00' },
+    { name:'CYBER', price:5000, unlocked:false, body:'#0ff', ring:'#f0f' }
+];
+
+let entities = { enemies:[], bullets:[], particles:[], texts:[] };
+
+/* ================= LOGIC ================= */
+function startGame() {
+    GAME.state='playing'; GAME.wave=0; GAME.cash=0;
+    PLAYER.hp=100; PLAYER.maxHp=100; PLAYER.speed=5; PLAYER.x=W/2; PLAYER.y=H/2;
+    WEAPONS.forEach((w,i)=>w.unlocked=(i===0));
+    SKINS.forEach((s,i)=>s.unlocked=(i===0));
+    document.querySelectorAll('.menu-screen').forEach(el=>el.classList.add('hidden'));
+    nextWave(); loop();
+}
+function nextWave() {
+    GAME.wave++; GAME.toSpawn=10+GAME.wave*3; GAME.active=0; GAME.state='playing';
+    document.getElementById('shop-menu').classList.add('hidden');
+    updateHUD();
+    spawnText(`WAVE ${GAME.wave}`, W/2, H/3, 40, '#0ff');
+    sfx(150, 'sawtooth', 1.5, 0.3, 50);
+}
+function loop() {
+    if(GAME.state!=='menu') requestAnimationFrame(loop);
+    if(GAME.state==='playing') { update(); draw(); }
+}
+function update() {
+    if(PLAYER.hp<=0) return gameOver();
+    // Player Move (WASD + ARROWS)
+    let dx = (KEYS['KeyD']||KEYS['ArrowRight']?1:0)-(KEYS['KeyA']||KEYS['ArrowLeft']?1:0);
+    let dy = (KEYS['KeyS']||KEYS['ArrowDown']?1:0)-(KEYS['KeyW']||KEYS['ArrowUp']?1:0);
+    if(dx&&dy) { dx*=0.707; dy*=0.707; }
+    PLAYER.x = Math.max(20, Math.min(W-20, PLAYER.x+dx*PLAYER.speed));
+    PLAYER.y = Math.max(20, Math.min(H-20, PLAYER.y+dy*PLAYER.speed));
+    PLAYER.angle = Math.atan2(MOUSE.y-PLAYER.y, MOUSE.x-PLAYER.x);
+
+    // Shoot
+    let w = WEAPONS[PLAYER.wIndex];
+    if(MOUSE.down && Date.now()-PLAYER.lastShot>w.rate) {
+        PLAYER.lastShot = Date.now();
+        sfx(w.name==='SHOTGUN'?200:500, 'square', 0.1, 0.15, -300);
+        for(let i=0; i<(w.count||1); i++) {
+            let a = PLAYER.angle + (Math.random()-0.5)*(w.spread||0.02);
+            entities.bullets.push({x:PLAYER.x+Math.cos(PLAYER.angle)*20, y:PLAYER.y+Math.sin(PLAYER.angle)*20, vx:Math.cos(a)*w.spd, vy:Math.sin(a)*w.spd, dmg:w.dmg, color:w.color, pen:w.pen||1, life:100});
+        }
+        if(!w.auto) MOUSE.down=false;
+    }
+
+    // Spawning & Wave End
+    if(GAME.toSpawn>0 && --GAME.spawnTimer<=0) {
+        GAME.toSpawn--; GAME.active++; GAME.spawnTimer=Math.max(15, 60-GAME.wave);
+        spawnEnemy();
+    }
+    if(GAME.toSpawn<=0 && GAME.active<=0 && GAME.state==='playing') {
+        GAME.state='shop'; setTimeout(() => openShop(GAME.shopTab), 1200);
+    }
+
+    // Entity Updates
+    entities.bullets.forEach((b,i)=>{
+        b.x+=b.vx; b.y+=b.vy;
+        if(b.x<0||b.x>W||b.y<0||b.y>H||--b.life<0) entities.bullets.splice(i,1);
+    });
+    entities.enemies.forEach((e,i)=>{
+        let ang = Math.atan2(PLAYER.y-e.y, PLAYER.x-e.x);
+        e.x+=Math.cos(ang)*e.spd; e.y+=Math.sin(ang)*e.spd; e.angle=ang;
+        if(dist(PLAYER,e) < PLAYER.r+e.r) {
+            PLAYER.hp -= e.dmg*0.05; updateHUD();
+            if(Math.random()<0.05) { sfx(100,'sawtooth',0.1,0.2); spawnParticles(PLAYER.x,PLAYER.y,10,'#f05'); }
+        }
+        for(let j=entities.bullets.length-1; j>=0; j--) {
+            let b = entities.bullets[j];
+            if(dist(b,e) < e.r+10) {
+                e.hp -= b.dmg; spawnParticles(b.x, b.y, 5, e.color, 3);
+                if(--b.pen<=0) entities.bullets.splice(j,1);
+                if(e.hp<=0) {
+                    spawnParticles(e.x, e.y, 20, e.color, 6); sfx(150,'noise',0.3,0.3);
+                    GAME.cash+=e.val; GAME.active--; entities.enemies.splice(i,1); updateHUD(); break;
+                }
+            }
+        }
+    });
+    entities.particles.forEach((p,i)=>{ p.x+=p.vx; p.y+=p.vy; p.life-=p.decay; if(p.life<=0) entities.particles.splice(i,1); });
+    entities.texts.forEach((t,i)=>{ t.y-=0.5; t.life-=0.015; if(t.life<=0) entities.texts.splice(i,1); });
+}
+
+function spawnEnemy() {
+    let side=Math.floor(Math.random()*4), x, y, t=Math.random();
+    if(side===0){x=Math.random()*W;y=-30} else if(side===1){x=W+30;y=Math.random()*H} else if(side===2){x=Math.random()*W;y=H+30} else{x=-30;y=Math.random()*H}
+    let e={x,y,r:18,hp:40+GAME.wave*8,maxHp:40+GAME.wave*8,spd:2+Math.random(),dmg:10,color:'#933',val:15};
+    if(GAME.wave>3 && t>0.7) { e.color='#c62'; e.spd*=1.6; e.hp*=0.6; e.maxHp*=0.6; e.r=14; }
+    else if(GAME.wave>5 && t<0.2) { e.color='#527'; e.spd*=0.7; e.hp*=3; e.maxHp*=3; e.r=28; e.val=50; }
+    entities.enemies.push(e);
+}
+function spawnParticles(x,y,n,c,s=5) { for(let i=0;i<n;i++) entities.particles.push({x,y,vx:(Math.random()-0.5)*s,vy:(Math.random()-0.5)*s,life:1,color:c,decay:0.02+Math.random()*0.03,size:2+Math.random()*3}); }
+function spawnText(t,x,y,s,c) { entities.texts.push({text:t,x,y,size:s,color:c,life:2}); }
+function dist(a,b) { return Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2); }
+
+/* ================= RENDERING ================= */
+function draw() {
+    let grad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W);
+    grad.addColorStop(0, '#0e0e12'); grad.addColorStop(1, '#000000');
+    ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)'; ctx.lineWidth = 1;
+    for(let i=-PLAYER.x*0.1%50; i<W; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,H); ctx.stroke(); }
+    for(let i=-PLAYER.y*0.1%50; i<H; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(W,i); ctx.stroke(); }
+
+    entities.bullets.forEach(b => {
+        ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(b.x, b.y, 3, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha=0.3; ctx.strokeStyle=b.color; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x-b.vx*3, b.y-b.vy*3); ctx.stroke(); ctx.globalAlpha=1;
+    });
+    entities.particles.forEach(p => { ctx.globalAlpha=p.life*0.6; ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size/2, 0, Math.PI*2); ctx.fill(); });
+    ctx.globalAlpha=1;
+
+    entities.enemies.forEach(e => {
+        ctx.fillStyle=e.color; ctx.strokeStyle='#ddd'; ctx.lineWidth=2; ctx.beginPath();
+        if(e.r>25) { for(let i=0;i<6;i++) { let a=e.angle+i*Math.PI/3; ctx[i?'lineTo':'moveTo'](e.x+Math.cos(a)*e.r, e.y+Math.sin(a)*e.r); } ctx.closePath(); }
+        else ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fillRect(e.x-e.r, e.y-e.r-12, e.r*2, 4);
+        ctx.fillStyle='#f55'; ctx.fillRect(e.x-e.r, e.y-e.r-12, (e.r*2)*(e.hp/e.maxHp), 4);
+    });
+
+    // Player (using active Skin)
+    let s = SKINS[PLAYER.sIndex];
+    ctx.save(); ctx.translate(PLAYER.x, PLAYER.y); ctx.rotate(PLAYER.angle);
+    ctx.fillStyle=s.body; ctx.strokeStyle='#888'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0,0,PLAYER.r*0.8,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle=s.ring; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(0,0,PLAYER.r*1.1, Date.now()*0.002, Date.now()*0.002+Math.PI*1.5); ctx.stroke();
+    ctx.fillStyle=WEAPONS[PLAYER.wIndex].color; ctx.fillRect(PLAYER.r*0.8, -3, 8, 6);
+    ctx.restore();
+
+    entities.texts.forEach(t => { ctx.globalAlpha=Math.min(1, t.life); ctx.fillStyle=t.color; ctx.font=`700 ${t.size}px 'Orbitron'`; ctx.textAlign='center'; ctx.fillText(t.text, t.x, t.y); });
+    ctx.globalAlpha=1;
+}
+
+/* ================= UI & SHOP ================= */
+function updateHUD() {
+    document.getElementById('val-hp').innerText = Math.max(0, Math.floor(PLAYER.hp));
+    document.getElementById('val-wave').innerText = GAME.wave;
+    document.getElementById('val-cash').innerText = GAME.cash;
+}
+function switchTab(t) { GAME.shopTab=t; openShop(t); }
+function openShop(tab='w') {
+    document.getElementById('shop-menu').classList.remove('hidden');
+    document.getElementById('shop-cash').innerText = GAME.cash;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-txt')[0] === tab || (tab==='w'&&b.innerText[0]==='W') )); // Simple check
+    const g = document.getElementById('shop-grid'); g.innerHTML='';
+    
+    if(tab==='w') WEAPONS.forEach((w,i)=>{ if(i===0)return; addItem(g, w.name, `DMG: ${w.dmg}`, w.unlocked?lang('owned'):'$'+w.price, w.unlocked, i, 'w'); });
+    else if(tab==='u') UPGRADES.forEach((u,i)=>{ addItem(g, u.name, u.desc, '$'+u.price, false, i, 'u'); });
+    else if(tab==='s') SKINS.forEach((s,i)=>{ addItem(g, s.name, '', s.unlocked?lang('owned'):'$'+s.price, s.unlocked, i, 's'); });
+}
+function lang(key) { return LANG[SETTINGS.lang][key] || key; }
+
+function addItem(grid, name, desc, priceTxt, owned, idx, type) {
+    let el = document.createElement('div'); el.className = 'shop-card';
+    el.innerHTML = `<h3 style="color:var(--accent);margin:0">${name}</h3><p style="color:#aaa;margin:10px 0">${desc}</p><div style="color:#ffd700;font-size:20px;margin-bottom:15px">${priceTxt}</div>`;
+    let btn = document.createElement('button'); btn.className = 'btn';
+    btn.style.padding = '10px 30px'; btn.style.fontSize = '18px'; btn.style.margin = '0';
+    
+    let btnTxt = lang('buy'), disabled = false, click = ()=>{};
+    if(type==='w') {
+        btnTxt = owned ? (PLAYER.wIndex===idx?lang('equipped'):lang('equip')) : lang('buy');
+        disabled = (!owned && GAME.cash<WEAPONS[idx].price) || PLAYER.wIndex===idx;
+        click = () => { if(!owned){ GAME.cash-=WEAPONS[idx].price; WEAPONS[idx].unlocked=true; sfx(600,'sine',0.3); } PLAYER.wIndex=idx; openShop('w'); };
+    } else if(type==='u') {
+        disabled = GAME.cash < UPGRADES[idx].price || (UPGRADES[idx].heal && PLAYER.hp>=PLAYER.maxHp);
+        click = () => { GAME.cash-=UPGRADES[idx].price; if(UPGRADES[idx].heal) PLAYER.hp=Math.min(PLAYER.maxHp, PLAYER.hp+UPGRADES[idx].heal); if(UPGRADES[idx].maxHp) {PLAYER.maxHp+=UPGRADES[idx].maxHp; PLAYER.hp+=UPGRADES[idx].maxHp;} if(UPGRADES[idx].speed) PLAYER.speed+=UPGRADES[idx].speed; sfx(600,'sine',0.3); openShop('u'); };
+    } else if(type==='s') {
+        btnTxt = owned ? (PLAYER.sIndex===idx?lang('equipped'):lang('equip')) : lang('buy');
+        disabled = (!owned && GAME.cash<SKINS[idx].price) || PLAYER.sIndex===idx;
+        click = () => { if(!owned){ GAME.cash-=SKINS[idx].price; SKINS[idx].unlocked=true; sfx(600,'sine',0.3); } PLAYER.sIndex=idx; openShop('s'); };
+    }
+    btn.innerText = btnTxt; btn.disabled = disabled; btn.onclick = click;
+    el.appendChild(btn); grid.appendChild(el);
+}
+function gameOver() {
+    GAME.state = 'gameover';
+    document.getElementById('game-over').classList.remove('hidden');
+    document.getElementById('final-wave').innerText = GAME.wave - 1;
+}
+</script>
+</body>
+</html>
