@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShOter</title>
+<title>ShOter - Cybernetic Survival</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
     :root {
@@ -75,7 +75,6 @@
     .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; background: transparent !important; color: var(--accent) !important; }
     .btn.danger:disabled { color: var(--danger) !important; }
 
-
     /* Shop & Settings */
     #shop-tabs { display: flex; gap: 10px; margin-bottom: 20px; z-index: 2; }
     .tab-btn { padding: 10px 30px; font-size: 18px; border: 2px solid #333; color: #888; background: var(--bg-panel); cursor: pointer; }
@@ -101,7 +100,6 @@
 
     .hidden { opacity: 0; pointer-events: none; }
     
-    /* NOVO: Estilo para o botão de Patch Notes e a tela */
     #patch-notes-btn {
         position: absolute;
         bottom: 20px;
@@ -161,7 +159,6 @@
     <button class="btn" onclick="openSettings()" style="font-size: 18px; padding: 10px 40px;" data-txt="settings">SETTINGS</button>
     <div style="margin-top: 40px; color: #666; z-index: 2;">[WASD / ARROWS] MOVE // [MOUSE] AIM & FIRE</div>
     
-    <!-- NOVO: Botão de Patch Notes -->
     <div id="patch-notes-btn" onclick="openPatchNotes()">v1.5 Updates</div>
 </div>
 
@@ -208,15 +205,15 @@
     <p style="font-size: 20px; color: #aaa; z-index: 2; letter-spacing: 3px;" data-txt="resume">PRESS 'P' OR 'ESC' TO RESUME</p>
 </div>
 
-<!-- NOVO: Tela de Patch Notes -->
+<!-- Tela de Patch Notes -->
 <div id="patch-notes-menu" class="menu-screen hidden">
     <h2 style="font-size: 50px; color: var(--accent); margin-bottom: 20px; z-index: 2;">PATCH NOTES</h2>
     <div id="patch-notes-content">
         <h3>New Enemies</h3>
         <p>The arena has become more dangerous with the arrival of new threats. Each appears more frequently in later waves.</p>
-        <p><strong>Dasher:</strong> A fast, fragile enemy that attempts to overwhelm with sheer speed. Appears from Wave 3 onwards.</p>
-        <p><strong>Juggernaut:</strong> A slow but extremely durable unit. It requires sustained fire to be taken down. Appears from Wave 5 onwards.</p>
-        <p><strong>Exploder:</strong> Upon destruction, this volatile enemy detonates, dealing area-of-effect damage to everything nearby—including you and other hostiles. Use it to your advantage. Appears from Wave 6 onwards.</p>
+        <p><strong>Dasher:</strong> A fast, fragile enemy that attempts to overwhelm with sheer speed. Appears from Wave 4 onwards.</p>
+        <p><strong>Juggernaut:</strong> A slow but extremely durable unit. It requires sustained fire to be taken down. Appears from Wave 10 onwards.</p>
+        <p><strong>Exploder:</strong> Upon destruction, this volatile enemy detonates, dealing area-of-effect damage to everything nearby—including you and other hostiles. Use it to your advantage. Appears from Wave 17 onwards.</p>
 
         <h3>New Armory Additions</h3>
         <p><strong>Chain Gun:</strong> A high fire-rate automatic weapon with a slight spread. Excellent for crowd control.</p>
@@ -259,11 +256,10 @@ function toggleAudio() { SETTINGS.audio = !SETTINGS.audio; saveSettings(); }
 function toggleLang() { SETTINGS.lang = SETTINGS.lang === 'en' ? 'pt' : 'en'; saveSettings(); }
 function openSettings() { document.getElementById('main-menu').classList.add('hidden'); document.getElementById('settings-menu').classList.remove('hidden'); }
 function closeSettings() { document.getElementById('settings-menu').classList.add('hidden'); document.getElementById('main-menu').classList.remove('hidden'); }
-// NOVO: Funções para a tela de Patch Notes
 function openPatchNotes() { document.getElementById('main-menu').classList.add('hidden'); document.getElementById('patch-notes-menu').classList.remove('hidden'); }
 function closePatchNotes() { document.getElementById('patch-notes-menu').classList.add('hidden'); document.getElementById('main-menu').classList.remove('hidden'); }
 
-applySettings(); // Init text
+applySettings();
 
 // AUDIO SYSTEM
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -401,7 +397,8 @@ function update() {
         for(let j=entities.bullets.length-1; j>=0; j--) {
             let b = entities.bullets[j];
             if(dist(b,e) < e.r+10) {
-                e.hp -= b.dmg; spawnParticles(b.x, b.y, 5, e.color, 3);
+                e.hp = Math.max(0, e.hp - b.dmg); // BUG FIX: Garante que a vida não fique negativa
+                spawnParticles(b.x, b.y, 5, e.color, 3);
                 if(--b.pen<=0) entities.bullets.splice(j,1);
                 if(e.hp<=0) {
                     if (e.type === 'exploder') {
@@ -423,7 +420,7 @@ function handleExplosion(x, y, radius, damage) {
     sfx(50, 'triangle', 0.5, 0.4, -20);
     entities.enemies.forEach(other => {
         if (dist({x,y}, other) < radius) {
-            other.hp -= damage;
+            other.hp = Math.max(0, other.hp - damage); // BUG FIX: Garante que a vida não fique negativa
         }
     });
     if (dist({x,y}, PLAYER) < radius) {
@@ -437,11 +434,12 @@ function spawnEnemy() {
     let side=Math.floor(Math.random()*4), x, y, rand=Math.random();
     if(side===0){x=Math.random()*W;y=-30} else if(side===1){x=W+30;y=Math.random()*H} else if(side===2){x=Math.random()*W;y=H+30} else{x=-30;y=Math.random()*H}
     let e = {x, y, r:18, hp:40+GAME.wave*8, maxHp:40+GAME.wave*8, spd:2+Math.random(), dmg:10, val:15, color:'#933', type:'normal'};
-    if (GAME.wave >= 6 && rand < 0.15) {
+    // BALANCEAMENTO: Ondas ajustadas
+    if (GAME.wave >= 17 && rand < 0.15) {
         e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100;
-    } else if (GAME.wave >= 5 && rand < 0.3) {
+    } else if (GAME.wave >= 10 && rand < 0.3) {
         e.type = 'juggernaut'; e.color = '#527'; e.r = 28; e.hp *= 3.5; e.maxHp *= 3.5; e.spd *= 0.6; e.val = 50;
-    } else if (GAME.wave >= 3 && rand < 0.55) {
+    } else if (GAME.wave >= 4 && rand < 0.55) {
         e.type = 'dasher'; e.color = '#c92'; e.r = 14; e.hp *= 0.6; e.maxHp *= 0.6; e.spd *= 1.8; e.val = 20;
     }
     entities.enemies.push(e);
