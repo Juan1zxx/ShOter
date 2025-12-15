@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShOter - Cybernetic Survival</title>
+<title>ShOter</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
     :root {
@@ -101,42 +101,19 @@
     .hidden { opacity: 0; pointer-events: none; }
     
     #patch-notes-btn {
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-        color: #666;
-        font-size: 16px;
-        cursor: pointer;
-        z-index: 101;
-        transition: color 0.3s;
+        position: absolute; bottom: 20px; right: 20px;
+        color: #666; font-size: 16px; cursor: pointer;
+        z-index: 101; transition: color 0.3s;
     }
-    #patch-notes-btn:hover {
-        color: var(--accent);
-    }
+    #patch-notes-btn:hover { color: var(--accent); }
     #patch-notes-content {
-        width: 80%;
-        max-width: 800px;
-        max-height: 70vh;
-        overflow-y: auto;
-        background: var(--bg-panel);
-        padding: 20px 40px;
-        border-radius: 10px;
-        border: 2px solid #333;
-        text-align: left;
+        width: 80%; max-width: 800px; max-height: 70vh; overflow-y: auto;
+        background: var(--bg-panel); padding: 20px 40px; border-radius: 10px;
+        border: 2px solid #333; text-align: left;
     }
-    #patch-notes-content h3 {
-        color: var(--accent);
-        border-bottom: 1px solid var(--accent);
-        padding-bottom: 5px;
-        margin-top: 25px;
-    }
-    #patch-notes-content p {
-        color: #ccc;
-        line-height: 1.6;
-    }
-    #patch-notes-content strong {
-        color: #fff;
-    }
+    #patch-notes-content h3 { color: var(--accent); border-bottom: 1px solid var(--accent); padding-bottom: 5px; margin-top: 25px; }
+    #patch-notes-content p { color: #ccc; line-height: 1.6; }
+    #patch-notes-content strong { color: #fff; }
 
 </style>
 </head>
@@ -158,8 +135,7 @@
     <button class="btn" onclick="startGame()" data-txt="deploy">DEPLOY</button>
     <button class="btn" onclick="openSettings()" style="font-size: 18px; padding: 10px 40px;" data-txt="settings">SETTINGS</button>
     <div style="margin-top: 40px; color: #666; z-index: 2;">[WASD / ARROWS] MOVE // [MOUSE] AIM & FIRE</div>
-    
-    <div id="patch-notes-btn" onclick="openPatchNotes()">v1.5 Updates</div>
+    <div id="patch-notes-btn" onclick="openPatchNotes()">v2.0 Updates</div>
 </div>
 
 <!-- SETTINGS MENU -->
@@ -168,6 +144,10 @@
     <div class="setting-row">
         <span data-txt="audio">AUDIO</span>
         <button id="btn-audio" class="btn" onclick="toggleAudio()" style="margin:0; padding: 10px 30px; width: 150px;">ON</button>
+    </div>
+    <div class="setting-row">
+        <span data-txt="dmg_text">DAMAGE TEXT</span>
+        <button id="btn-dmg" class="btn" onclick="toggleDmgText()" style="margin:0; padding: 10px 30px; width: 150px;">ON</button>
     </div>
     <div class="setting-row">
         <span data-txt="lang">LANGUAGE</span>
@@ -200,33 +180,40 @@
 </div>
 
 <!-- PAUSE MENU -->
-<div id="pause-menu" class="menu-screen hidden" style="background: rgba(10, 10, 18, 0.8);">
-    <h2 style="font-size: 80px; color: var(--accent); z-index: 2;" data-txt="paused">PAUSED</h2>
-    <p style="font-size: 20px; color: #aaa; z-index: 2; letter-spacing: 3px;" data-txt="resume">PRESS 'P' OR 'ESC' TO RESUME</p>
+<div id="pause-menu" class="menu-screen hidden" style="background: rgba(10, 10, 18, 0.95);">
+    <h2 style="font-size: 60px; color: var(--accent); margin-bottom: 30px; z-index: 2;" data-txt="paused">PAUSED</h2>
+    
+    <div class="setting-row">
+        <span data-txt="audio">AUDIO</span>
+        <button id="btn-p-audio" class="btn" onclick="toggleAudio()" style="margin:0; padding: 10px 30px; width: 150px;">ON</button>
+    </div>
+    <div class="setting-row">
+        <span data-txt="dmg_text">DAMAGE TEXT</span>
+        <button id="btn-p-dmg" class="btn" onclick="toggleDmgText()" style="margin:0; padding: 10px 30px; width: 150px;">ON</button>
+    </div>
+    <div class="setting-row">
+        <span data-txt="lang">LANGUAGE</span>
+        <button id="btn-p-lang" class="btn" onclick="toggleLang()" style="margin:0; padding: 10px 30px; width: 150px;">EN</button>
+    </div>
+
+    <div style="margin-top: 40px; display: flex; gap: 20px; z-index: 2;">
+        <button class="btn" onclick="togglePause()" data-txt="resume_btn">RESUME</button>
+        <button class="btn danger" onclick="location.reload()" data-txt="abort">ABORT MISSION</button>
+    </div>
 </div>
 
-<!-- Tela de Patch Notes -->
+<!-- PATCH NOTES -->
 <div id="patch-notes-menu" class="menu-screen hidden">
     <h2 style="font-size: 50px; color: var(--accent); margin-bottom: 20px; z-index: 2;">PATCH NOTES</h2>
     <div id="patch-notes-content">
+        <h3>System Update</h3>
+        <p><strong>Pause Menu Upgrade:</strong> You can now change settings (Audio, Damage Text, Language) directly from the pause menu.</p>
+        <p><strong>Damage Visualization:</strong> Floating Combat Text system added.</p>
         <h3>New Enemies</h3>
-        <p>The arena has become more dangerous with the arrival of new threats. Each appears more frequently in later waves.</p>
-        <p><strong>Dasher:</strong> A fast, fragile enemy that attempts to overwhelm with sheer speed. Appears from Wave 4 onwards.</p>
-        <p><strong>Juggernaut:</strong> A slow but extremely durable unit. It requires sustained fire to be taken down. Appears from Wave 10 onwards.</p>
-        <p><strong>Exploder:</strong> Upon destruction, this volatile enemy detonates, dealing area-of-effect damage to everything nearby—including you and other hostiles. Use it to your advantage. Appears from Wave 17 onwards.</p>
-
-        <h3>New Armory Additions</h3>
-        <p><strong>Chain Gun:</strong> A high fire-rate automatic weapon with a slight spread. Excellent for crowd control.</p>
-        <p><strong>Beam Laser:</strong> A high-damage weapon that fires a projectile with near-infinite penetration, capable of clearing entire lines of enemies.</p>
-
-        <h3>New System Upgrade</h3>
-        <p><strong>Credit Booster:</strong> A new permanent upgrade available in the shop. Once purchased, it grants a +50% bonus to all credits earned from enemy kills.</p>
-
-        <h3>New Cosmetics</h3>
-        <p>Two new chassis skins have been added to the shop: <strong>Crimson</strong> and <strong>Neon</strong>.</p>
-        
-        <h3>Quality of Life</h3>
-        <p><strong>Pause Function:</strong> The game can now be paused at any time during gameplay by pressing the <strong>'P'</strong> or <strong>'Esc'</strong> key.</p>
+        <p><strong>Dasher:</strong> Fast, fragile unit (Wave 4+).</p>
+        <p><strong>Juggernaut:</strong> Slow, durable unit (Wave 10+).</p>
+        <p><strong>Exploder:</strong> Area-of-effect damage on death (Wave 17+).</p>
+        <p><strong>BOSS:</strong> A massive threat appears every 10 waves starting at Wave 20.</p>
     </div>
     <button class="btn danger" onclick="closePatchNotes()" style="margin-top: 20px;" data-txt="back">BACK</button>
 </div>
@@ -239,21 +226,35 @@ let W, H;
 function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
 window.onresize = resize; resize();
 
-// LOCALIZATION & SETTINGS
 const LANG = {
-    en: { deploy:'DEPLOY', settings:'SETTINGS', back:'BACK', audio:'AUDIO', lang:'LANGUAGE', armory:'ARMORY', credits:'CREDITS', weapons:'WEAPONS', upgrades:'UPGRADES', skins:'SKINS', next_wave:'NEXT WAVE >>', terminated:'TERMINATED', waves_cleared:'WAVES CLEARED', reboot:'REBOOT SYSTEM', wave:'WAVE', equip:'EQUIP', equipped:'EQUIPPED', buy:'BUY', owned:'OWNED', purchased: 'PURCHASED', paused: 'PAUSED', resume: `PRESS 'P' OR 'ESC' TO RESUME` },
-    pt: { deploy:'JOGAR', settings:'CONFIGURAÇÕES', back:'VOLTAR', audio:'ÁUDIO', lang:'IDIOMA', armory:'ARSENAL', credits:'CRÉDITOS', weapons:'ARMAS', upgrades:'MELHORIAS', skins:'VISUAIS', next_wave:'PRÓXIMA ONDA >>', terminated:'TERMINADO', waves_cleared:'ONDAS VENCIDAS', reboot:'REINICIAR', wave:'ONDA', equip:'EQUIPAR', equipped:'EQUIPADO', buy:'COMPRAR', owned:'POSSUÍDO', purchased: 'COMPRADO', paused: 'PAUSADO', resume: `PRESSIONE 'P' OU 'ESC' PARA CONTINUAR` }
+    en: { deploy:'DEPLOY', settings:'SETTINGS', back:'BACK', audio:'AUDIO', lang:'LANGUAGE', armory:'ARMORY', credits:'CREDITS', weapons:'WEAPONS', upgrades:'UPGRADES', skins:'SKINS', next_wave:'NEXT WAVE >>', terminated:'TERMINATED', waves_cleared:'WAVES CLEARED', reboot:'REBOOT SYSTEM', wave:'WAVE', equip:'EQUIP', equipped:'EQUIPPED', buy:'BUY', owned:'OWNED', purchased: 'PURCHASED', paused: 'PAUSED', resume: `PRESS 'P' OR 'ESC' TO RESUME`, resume_btn: 'RESUME', abort: 'ABORT MISSION', dmg_text: 'DAMAGE TEXT' },
+    pt: { deploy:'JOGAR', settings:'CONFIGURAÇÕES', back:'VOLTAR', audio:'ÁUDIO', lang:'IDIOMA', armory:'ARSENAL', credits:'CRÉDITOS', weapons:'ARMAS', upgrades:'MELHORIAS', skins:'VISUAIS', next_wave:'PRÓXIMA ONDA >>', terminated:'TERMINADO', waves_cleared:'ONDAS VENCIDAS', reboot:'REINICIAR', wave:'ONDA', equip:'EQUIPAR', equipped:'EQUIPADO', buy:'COMPRAR', owned:'POSSUÍDO', purchased: 'COMPRADO', paused: 'PAUSADO', resume: `PRESSIONE 'P' OU 'ESC' PARA CONTINUAR`, resume_btn: 'CONTINUAR', abort: 'ABORTAR MISSÃO', dmg_text: 'TEXTO DE DANO' }
 };
 
-let SETTINGS = JSON.parse(localStorage.getItem('shoter_settings')) || { audio: true, lang: 'en' };
+// Initial Settings
+let SETTINGS = JSON.parse(localStorage.getItem('shoter_settings')) || { audio: true, lang: 'en', dmgText: true };
+
 function saveSettings() { localStorage.setItem('shoter_settings', JSON.stringify(SETTINGS)); applySettings(); }
+
 function applySettings() {
+    // Atualiza botões do Menu Principal
     document.getElementById('btn-audio').innerText = SETTINGS.audio ? 'ON' : 'OFF';
+    document.getElementById('btn-dmg').innerText = SETTINGS.dmgText ? 'ON' : 'OFF';
     document.getElementById('btn-lang').innerText = SETTINGS.lang === 'en' ? 'EN' : 'PT-BR';
+
+    // Atualiza botões do Menu de Pause
+    if(document.getElementById('btn-p-audio')) document.getElementById('btn-p-audio').innerText = SETTINGS.audio ? 'ON' : 'OFF';
+    if(document.getElementById('btn-p-dmg')) document.getElementById('btn-p-dmg').innerText = SETTINGS.dmgText ? 'ON' : 'OFF';
+    if(document.getElementById('btn-p-lang')) document.getElementById('btn-p-lang').innerText = SETTINGS.lang === 'en' ? 'EN' : 'PT-BR';
+
+    // Traduções
     document.querySelectorAll('[data-txt]').forEach(el => el.innerText = LANG[SETTINGS.lang][el.getAttribute('data-txt')] || el.innerText);
 }
+
 function toggleAudio() { SETTINGS.audio = !SETTINGS.audio; saveSettings(); }
+function toggleDmgText() { SETTINGS.dmgText = !SETTINGS.dmgText; saveSettings(); }
 function toggleLang() { SETTINGS.lang = SETTINGS.lang === 'en' ? 'pt' : 'en'; saveSettings(); }
+
 function openSettings() { document.getElementById('main-menu').classList.add('hidden'); document.getElementById('settings-menu').classList.remove('hidden'); }
 function closeSettings() { document.getElementById('settings-menu').classList.add('hidden'); document.getElementById('main-menu').classList.remove('hidden'); }
 function openPatchNotes() { document.getElementById('main-menu').classList.add('hidden'); document.getElementById('patch-notes-menu').classList.remove('hidden'); }
@@ -261,7 +262,6 @@ function closePatchNotes() { document.getElementById('patch-notes-menu').classLi
 
 applySettings();
 
-// AUDIO SYSTEM
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function sfx(freq, type, dur, vol=0.1, slide=0) {
     if(!SETTINGS.audio) return;
@@ -288,9 +288,8 @@ window.onkeyup=e=>KEYS[e.code]=false;
 window.onmousemove=e=>{MOUSE.x=e.clientX; MOUSE.y=e.clientY};
 window.onmousedown=()=>MOUSE.down=true; window.onmouseup=()=>MOUSE.down=false;
 
-const PLAYER = { x:W/2, y:H/2, r:15, hp:100, maxHp:100, speed:5, wIndex:0, sIndex:0, lastShot:0, angle:0 };
+const PLAYER = { x:W/2, y:H/2, r:15, hp:100, maxHp:100, speed:5, wIndex:0, sIndex:0, lastShot:0, angle:0, hitCD: 0 };
 
-// DATA
 const WEAPONS = [
     { name:'PISTOL', dmg:25, rate:300, spd:18, color:'#0ff', unlocked:true, price:0 },
     { name:'SHOTGUN', dmg:15, rate:800, spd:18, color:'#f90', unlocked:false, price:600, count:6, spread:0.3 },
@@ -314,27 +313,45 @@ const SKINS = [
     { name:'CYBER', price:8000, unlocked:false, body:'#0ff', ring:'#f0f' }
 ];
 
-let entities = { enemies:[], bullets:[], particles:[], texts:[] };
+let entities = { enemies:[], bullets:[], particles:[], texts:[], damageTexts:[] };
 
 /* ================= LOGIC ================= */
 function startGame() {
     GAME.state='playing'; GAME.wave=0; GAME.cash=0; GAME.cashMultiplier=1;
-    PLAYER.hp=100; PLAYER.maxHp=100; PLAYER.speed=5; PLAYER.x=W/2; PLAYER.y=H/2; PLAYER.wIndex=0; PLAYER.sIndex=0;
+    PLAYER.hp=100; PLAYER.maxHp=100; PLAYER.speed=5; PLAYER.x=W/2; PLAYER.y=H/2; PLAYER.wIndex=0; PLAYER.sIndex=0; PLAYER.hitCD=0;
     WEAPONS.forEach((w,i)=>w.unlocked=(i===0));
     SKINS.forEach((s,i)=>s.unlocked=(i===0));
     UPGRADES.forEach(u=>u.unlocked=false);
+    entities = { enemies:[], bullets:[], particles:[], texts:[], damageTexts:[] };
     document.querySelectorAll('.menu-screen').forEach(el=>el.classList.add('hidden'));
     nextWave(); loop();
 }
+
 function nextWave() {
     GAME.wave++; 
-    GAME.toSpawn = 10 + Math.floor(GAME.wave * 3.5);
-    GAME.active=0; GAME.state='playing';
+    
+    // --- BOSS LOGIC START ---
+    // Checa se é onda 20, 30, 40...
+    let isBossWave = (GAME.wave >= 20 && GAME.wave % 10 === 0);
+
+    if (isBossWave) {
+        GAME.toSpawn = 5; // Poucos inimigos
+        spawnBoss();      // Spawna o Chefão
+        GAME.active = 1;  // Conta o boss como ativo
+        spawnText("WARNING: BOSS DETECTED", W/2, H/2, 60, '#ff0000');
+    } else {
+        GAME.toSpawn = 10 + Math.floor(GAME.wave * 3.5);
+        GAME.active = 0;
+    }
+    // --- BOSS LOGIC END ---
+
+    GAME.state='playing';
     document.getElementById('shop-menu').classList.add('hidden');
     updateHUD();
     spawnText(`WAVE ${GAME.wave}`, W/2, H/3, 40, '#0ff');
     sfx(150, 'sawtooth', 1.5, 0.3, 50);
 }
+
 function togglePause() {
     if (GAME.state === 'playing') {
         GAME.state = 'paused';
@@ -363,6 +380,8 @@ function update() {
     PLAYER.x = Math.max(20, Math.min(W-20, PLAYER.x+dx*PLAYER.speed));
     PLAYER.y = Math.max(20, Math.min(H-20, PLAYER.y+dy*PLAYER.speed));
     PLAYER.angle = Math.atan2(MOUSE.y-PLAYER.y, MOUSE.x-PLAYER.x);
+    
+    if(PLAYER.hitCD > 0) PLAYER.hitCD--;
 
     let w = WEAPONS[PLAYER.wIndex];
     if(MOUSE.down && Date.now()-PLAYER.lastShot>w.rate) {
@@ -387,17 +406,30 @@ function update() {
         b.x+=b.vx; b.y+=b.vy;
         if(b.x<0||b.x>W||b.y<0||b.y>H||--b.life<0) entities.bullets.splice(i,1);
     });
+
     entities.enemies.forEach((e,i)=>{
         let ang = Math.atan2(PLAYER.y-e.y, PLAYER.x-e.x);
         e.x+=Math.cos(ang)*e.spd; e.y+=Math.sin(ang)*e.spd; e.angle=ang;
+        
         if(dist(PLAYER,e) < PLAYER.r+e.r) {
-            PLAYER.hp -= e.dmg*0.05; updateHUD();
-            if(Math.random()<0.05) { sfx(100,'sawtooth',0.1,0.2); spawnParticles(PLAYER.x,PLAYER.y,10,'#f05'); }
+            if(PLAYER.hitCD <= 0) {
+                let hitDmg = Math.floor(e.dmg * 1.5); 
+                hitDmg = Math.max(1, hitDmg);
+                
+                PLAYER.hp -= hitDmg;
+                PLAYER.hitCD = 30; // 0.5 seconds immunity
+                
+                spawnFloatingDmg(PLAYER.x, PLAYER.y - 30, hitDmg);
+                spawnParticles(PLAYER.x,PLAYER.y,10,'#f05');
+                sfx(100,'sawtooth',0.1,0.2); 
+                updateHUD();
+            }
         }
+
         for(let j=entities.bullets.length-1; j>=0; j--) {
             let b = entities.bullets[j];
             if(dist(b,e) < e.r+10) {
-                e.hp = Math.max(0, e.hp - b.dmg); // BUG FIX: Garante que a vida não fique negativa
+                e.hp = Math.max(0, e.hp - b.dmg);
                 spawnParticles(b.x, b.y, 5, e.color, 3);
                 if(--b.pen<=0) entities.bullets.splice(j,1);
                 if(e.hp<=0) {
@@ -411,8 +443,16 @@ function update() {
             }
         }
     });
+
     entities.particles.forEach((p,i)=>{ p.x+=p.vx; p.y+=p.vy; p.life-=p.decay; if(p.life<=0) entities.particles.splice(i,1); });
     entities.texts.forEach((t,i)=>{ t.y-=0.5; t.life-=0.015; if(t.life<=0) entities.texts.splice(i,1); });
+    
+    entities.damageTexts.forEach((t, i) => {
+        t.y += t.vy;
+        t.life -= 0.02;
+        t.scale = Math.min(1.2, t.scale + 0.05);
+        if(t.life <= 0) entities.damageTexts.splice(i, 1);
+    });
 }
 
 function handleExplosion(x, y, radius, damage) {
@@ -420,32 +460,71 @@ function handleExplosion(x, y, radius, damage) {
     sfx(50, 'triangle', 0.5, 0.4, -20);
     entities.enemies.forEach(other => {
         if (dist({x,y}, other) < radius) {
-            other.hp = Math.max(0, other.hp - damage); // BUG FIX: Garante que a vida não fique negativa
+            other.hp = Math.max(0, other.hp - damage);
         }
     });
     if (dist({x,y}, PLAYER) < radius) {
         PLAYER.hp -= damage / 2;
+        spawnFloatingDmg(PLAYER.x, PLAYER.y - 40, damage/2);
         updateHUD();
         spawnParticles(PLAYER.x, PLAYER.y, 20, '#f05');
     }
+}
+
+function spawnBoss() {
+    // Spawna no topo da tela, fora de visão inicialmente
+    let e = {
+        x: W / 2,
+        y: -100,
+        r: 80, // Muito grande
+        hp: 3000 + (GAME.wave * 200), // Muita vida
+        maxHp: 3000 + (GAME.wave * 200),
+        spd: 1.5, // Lento
+        dmg: 50,
+        val: 1000,
+        color: '#ff0000', // Vermelho
+        type: 'boss',
+        angle: Math.PI / 2
+    };
+    entities.enemies.push(e);
 }
 
 function spawnEnemy() {
     let side=Math.floor(Math.random()*4), x, y, rand=Math.random();
     if(side===0){x=Math.random()*W;y=-30} else if(side===1){x=W+30;y=Math.random()*H} else if(side===2){x=Math.random()*W;y=H+30} else{x=-30;y=Math.random()*H}
     let e = {x, y, r:18, hp:40+GAME.wave*8, maxHp:40+GAME.wave*8, spd:2+Math.random(), dmg:10, val:15, color:'#933', type:'normal'};
-    // BALANCEAMENTO: Ondas ajustadas
     if (GAME.wave >= 17 && rand < 0.15) {
         e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100;
     } else if (GAME.wave >= 10 && rand < 0.3) {
         e.type = 'juggernaut'; e.color = '#527'; e.r = 28; e.hp *= 3.5; e.maxHp *= 3.5; e.spd *= 0.6; e.val = 50;
     } else if (GAME.wave >= 4 && rand < 0.55) {
-        e.type = 'dasher'; e.color = '#c92'; e.r = 14; e.hp *= 0.6; e.maxHp *= 0.6; e.spd *= 1.8; e.val = 20;
+        e.type = 'dasher'; 
+        e.color = '#c92'; 
+        e.r = 14; 
+        e.hp *= 0.6; 
+        e.maxHp *= 0.6; 
+        e.spd *= 1.8; 
+        e.val = 20; 
+        e.dmg = 3.4; /* <--- 5 de Dano real */
     }
     entities.enemies.push(e);
 }
 function spawnParticles(x,y,n,c,s=5) { for(let i=0;i<n;i++) entities.particles.push({x,y,vx:(Math.random()-0.5)*s,vy:(Math.random()-0.5)*s,life:1,color:c,decay:0.02+Math.random()*0.03,size:2+Math.random()*3}); }
 function spawnText(t,x,y,s,c) { entities.texts.push({text:t,x,y,size:s,color:c,life:2}); }
+
+function spawnFloatingDmg(x, y, amount) {
+    if (!SETTINGS.dmgText) return; 
+    entities.damageTexts.push({
+        text: Math.floor(amount),
+        x: x,
+        y: y,
+        vy: -1.5,
+        life: 1.0,
+        scale: 0.5,
+        color: '#ff0055'
+    });
+}
+
 function dist(a,b) { return Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2); }
 
 /* ================= RENDERING ================= */
@@ -474,6 +553,7 @@ function draw() {
             ctx.moveTo(e.r, 0); ctx.lineTo(-e.r/2, -e.r*0.8); ctx.lineTo(-e.r/2, e.r*0.8);
             ctx.restore();
         } else {
+            // Desenho padrão (Bolas) - Isso funcionará automaticamente para o Boss
             ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
         }
         ctx.closePath();
@@ -495,6 +575,22 @@ function draw() {
     ctx.restore();
 
     entities.texts.forEach(t => { ctx.globalAlpha=Math.min(1, t.life); ctx.fillStyle=t.color; ctx.font=`700 ${t.size}px 'Orbitron'`; ctx.textAlign='center'; ctx.fillText(t.text, t.x, t.y); });
+    
+    // RENDER FLOATING COMBAT TEXT
+    entities.damageTexts.forEach(t => {
+        ctx.globalAlpha = Math.max(0, t.life);
+        let fontSize = 24 * t.scale;
+        ctx.font = `900 ${fontSize}px 'Orbitron'`;
+        ctx.textAlign = 'center';
+        
+        // Shadow for readability
+        ctx.fillStyle = 'rgba(0,0,0,0.8)';
+        ctx.fillText(t.text, t.x + 2, t.y + 2);
+        
+        // Main text
+        ctx.fillStyle = t.color;
+        ctx.fillText(t.text, t.x, t.y);
+    });
     ctx.globalAlpha=1;
 }
 
