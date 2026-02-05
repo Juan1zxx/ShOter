@@ -1,9 +1,10 @@
+<!-- START OF FILE Paste February 04, 2026 - Updated v2.5 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShOter</title>
+<title>ShOter v2.5</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
     :root {
@@ -135,7 +136,7 @@
     <button class="btn" onclick="startGame()" data-txt="deploy">DEPLOY</button>
     <button class="btn" onclick="openSettings()" style="font-size: 18px; padding: 10px 40px;" data-txt="settings">SETTINGS</button>
     <div style="margin-top: 40px; color: #666; z-index: 2;">[WASD / ARROWS] MOVE // [MOUSE] AIM & FIRE</div>
-    <div id="patch-notes-btn" onclick="openPatchNotes()">v2.0 Updates</div>
+    <div id="patch-notes-btn" onclick="openPatchNotes()">v2.5 Updates</div>
 </div>
 
 <!-- SETTINGS MENU -->
@@ -204,22 +205,41 @@
 
 <!-- PATCH NOTES -->
 <div id="patch-notes-menu" class="menu-screen hidden">
-    <h2 style="font-size: 50px; color: var(--accent); margin-bottom: 20px; z-index: 2;">PATCH NOTES</h2>
+    <h2 style="font-size: 50px; color: var(--accent); margin-bottom: 20px; z-index: 2;">PATCH NOTES v2.5</h2>
     <div id="patch-notes-content">
-        <h3>System Update</h3>
-        <p><strong>Pause Menu Upgrade:</strong> You can now change settings (Audio, Damage Text, Language) directly from the pause menu.</p>
-        <p><strong>Damage Visualization:</strong> Floating Combat Text system added.</p>
-        <h3>New Enemies</h3>
-        <p><strong>Dasher:</strong> Fast, fragile unit (Wave 4+).</p>
-        <p><strong>Juggernaut:</strong> Slow, durable unit (Wave 10+).</p>
-        <p><strong>Exploder:</strong> Area-of-effect damage on death (Wave 17+).</p>
-        <p><strong>BOSS:</strong> A massive threat appears every 10 waves starting at Wave 20.</p>
+        <h3>Threat Update (v2.5)</h3>
+        <p><strong>BOSS OVERHAUL:</strong> The Boss unit has been re-engineered. It now has significantly higher durability and will deploy support minions immediately upon arrival. Expect heavier resistance.</p>
+        <p><strong>NEW HOSTILE: Trapezoid (Wave 50+):</strong> A long-range marksman unit. Maintains distance and fires energy projectiles. Prioritize targets accordingly.</p>
+        
+        <h3>Armory Expansion</h3>
+        <p><strong>New Weapons:</strong> FLAK CANNON (Area Denial) and VOID RAY (High DPS Beam) are now available for requisition.</p>
+        <p><strong>New Upgrades:</strong> REGEN MODULE (Passive Repair) and CRITICAL LENS (Double Damage Chance) added to the tech tree.</p>
+
+        <h3>Previous Updates</h3>
+        <p><strong>Damage Visualization:</strong> Floating Combat Text system.</p>
+        <p><strong>Enemies:</strong> Dasher (W4+), Juggernaut (W10+), Exploder (W17+).</p>
     </div>
     <button class="btn danger" onclick="closePatchNotes()" style="margin-top: 20px;" data-txt="back">BACK</button>
 </div>
 
 <script>
-/* ================= GLOBAL SETUP & SETTINGS ================= */
+/* ================= GLOBAL CONFIG & SETTINGS ================= */
+// SENIOR DEV NOTE: Centralized configuration for easier balancing
+const GAME_CONFIG = {
+    boss: {
+        baseHp: 5000,
+        hpPerWave: 500,
+        summonInterval: 3000, // ms
+    },
+    trapezoid: {
+        waveStart: 50,
+        hpMult: 2.0, // relative to base wave HP
+        range: 350,  // distance to keep from player
+        fireRate: 1500, // ms
+        bulletSpeed: 6
+    }
+};
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let W, H;
@@ -237,17 +257,14 @@ let SETTINGS = JSON.parse(localStorage.getItem('shoter_settings')) || { audio: t
 function saveSettings() { localStorage.setItem('shoter_settings', JSON.stringify(SETTINGS)); applySettings(); }
 
 function applySettings() {
-    // Atualiza botões do Menu Principal
     document.getElementById('btn-audio').innerText = SETTINGS.audio ? 'ON' : 'OFF';
     document.getElementById('btn-dmg').innerText = SETTINGS.dmgText ? 'ON' : 'OFF';
     document.getElementById('btn-lang').innerText = SETTINGS.lang === 'en' ? 'EN' : 'PT-BR';
 
-    // Atualiza botões do Menu de Pause
     if(document.getElementById('btn-p-audio')) document.getElementById('btn-p-audio').innerText = SETTINGS.audio ? 'ON' : 'OFF';
     if(document.getElementById('btn-p-dmg')) document.getElementById('btn-p-dmg').innerText = SETTINGS.dmgText ? 'ON' : 'OFF';
     if(document.getElementById('btn-p-lang')) document.getElementById('btn-p-lang').innerText = SETTINGS.lang === 'en' ? 'EN' : 'PT-BR';
 
-    // Traduções
     document.querySelectorAll('[data-txt]').forEach(el => el.innerText = LANG[SETTINGS.lang][el.getAttribute('data-txt')] || el.innerText);
 }
 
@@ -288,22 +305,30 @@ window.onkeyup=e=>KEYS[e.code]=false;
 window.onmousemove=e=>{MOUSE.x=e.clientX; MOUSE.y=e.clientY};
 window.onmousedown=()=>MOUSE.down=true; window.onmouseup=()=>MOUSE.down=false;
 
-const PLAYER = { x:W/2, y:H/2, r:15, hp:100, maxHp:100, speed:5, wIndex:0, sIndex:0, lastShot:0, angle:0, hitCD: 0 };
+const PLAYER = { x:W/2, y:H/2, r:15, hp:100, maxHp:100, speed:5, wIndex:0, sIndex:0, lastShot:0, angle:0, hitCD: 0, regen: 0, critChance: 0 };
 
+// NEW WEAPONS ADDED
 const WEAPONS = [
     { name:'PISTOL', dmg:25, rate:300, spd:18, color:'#0ff', unlocked:true, price:0 },
     { name:'SHOTGUN', dmg:15, rate:800, spd:18, color:'#f90', unlocked:false, price:600, count:6, spread:0.3 },
     { name:'PLASMA RIFLE', dmg:20, rate:100, spd:22, color:'#f0f', unlocked:false, price:1500, auto:true },
     { name:'CHAIN GUN', dmg:18, rate:50, spd:25, color:'#ccc', unlocked:false, price:2200, auto:true, spread:0.1 },
     { name:'RAILGUN', dmg:200, rate:1500, spd:50, color:'#0f0', unlocked:false, price:3000, pen:10 },
-    { name:'BEAM LASER', dmg:350, rate:2000, spd:80, color:'#ff5', unlocked:false, price:4500, pen:99 }
+    { name:'FLAK CANNON', dmg:60, rate:600, spd:15, color:'#ff4400', unlocked:false, price:3800, count:3, spread:0.15, auto:true },
+    { name:'VOID RAY', dmg:12, rate:30, spd:40, color:'#90f', unlocked:false, price:5500, auto:true, pen:5 },
+    { name:'BEAM LASER', dmg:350, rate:2000, spd:80, color:'#ff5', unlocked:false, price:7000, pen:99 }
 ];
+
+// NEW UPGRADES ADDED
 const UPGRADES = [
     { name:'NANOBOTS', price:150, heal:40, desc:'REPAIR 40% HP' },
     { name:'SHIELD CORE', price:400, maxHp:30, desc:'+30 MAX HP' },
     { name:'OVERCLOCK', price:600, speed:0.8, desc:'+MOVEMENT SPD' },
-    { name:'CREDIT BOOSTER', price:1000, multiplier: 1.5, desc:'+50% CREDITS FROM KILLS', unlocked: false }
+    { name:'CREDIT BOOSTER', price:1000, multiplier: 1.5, desc:'+50% CREDITS FROM KILLS', unlocked: false },
+    { name:'REGEN MODULE', price:2000, regen: 0.05, desc:'PASSIVE HP REGEN', unlocked: false },
+    { name:'CRITICAL LENS', price:2500, crit: 0.15, desc:'15% CHANCE FOR 2X DMG', unlocked: false }
 ];
+
 const SKINS = [
     { name:'DEFAULT', price:0, unlocked:true, body:'#eee', ring:'#fff' },
     { name:'STEALTH', price:1000, unlocked:false, body:'#222', ring:'#f00' },
@@ -319,9 +344,10 @@ let entities = { enemies:[], bullets:[], particles:[], texts:[], damageTexts:[] 
 function startGame() {
     GAME.state='playing'; GAME.wave=0; GAME.cash=0; GAME.cashMultiplier=1;
     PLAYER.hp=100; PLAYER.maxHp=100; PLAYER.speed=5; PLAYER.x=W/2; PLAYER.y=H/2; PLAYER.wIndex=0; PLAYER.sIndex=0; PLAYER.hitCD=0;
+    PLAYER.regen=0; PLAYER.critChance=0;
     WEAPONS.forEach((w,i)=>w.unlocked=(i===0));
     SKINS.forEach((s,i)=>s.unlocked=(i===0));
-    UPGRADES.forEach(u=>u.unlocked=false);
+    UPGRADES.forEach(u=>{u.unlocked=false; if(u.regen) u.unlocked=false;}); // Reset upgrades state
     entities = { enemies:[], bullets:[], particles:[], texts:[], damageTexts:[] };
     document.querySelectorAll('.menu-screen').forEach(el=>el.classList.add('hidden'));
     nextWave(); loop();
@@ -330,20 +356,18 @@ function startGame() {
 function nextWave() {
     GAME.wave++; 
     
-    // --- BOSS LOGIC START ---
-    // Checa se é onda 20, 30, 40...
+    // BOSS LOGIC
     let isBossWave = (GAME.wave >= 20 && GAME.wave % 10 === 0);
 
     if (isBossWave) {
-        GAME.toSpawn = 5; // Poucos inimigos
-        spawnBoss();      // Spawna o Chefão
-        GAME.active = 1;  // Conta o boss como ativo
+        GAME.toSpawn = 2; // Initial minions
+        spawnBoss();      
+        GAME.active = 1;  
         spawnText("WARNING: BOSS DETECTED", W/2, H/2, 60, '#ff0000');
     } else {
         GAME.toSpawn = 10 + Math.floor(GAME.wave * 3.5);
         GAME.active = 0;
     }
-    // --- BOSS LOGIC END ---
 
     GAME.state='playing';
     document.getElementById('shop-menu').classList.add('hidden');
@@ -363,6 +387,7 @@ function togglePause() {
         sfx(300, 'sine', 0.1, 0.2);
     }
 }
+
 function loop() {
     if (GAME.state !== 'menu') requestAnimationFrame(loop);
     if (GAME.state === 'playing') {
@@ -372,8 +397,15 @@ function loop() {
         draw();
     }
 }
+
 function update() {
     if (PLAYER.hp <= 0) return gameOver();
+    
+    // Regen logic
+    if (PLAYER.regen > 0 && PLAYER.hp < PLAYER.maxHp) {
+        PLAYER.hp = Math.min(PLAYER.maxHp, PLAYER.hp + PLAYER.regen);
+    }
+
     let dx = (KEYS['KeyD']||KEYS['ArrowRight']?1:0)-(KEYS['KeyA']||KEYS['ArrowLeft']?1:0);
     let dy = (KEYS['KeyS']||KEYS['ArrowDown']?1:0)-(KEYS['KeyW']||KEYS['ArrowUp']?1:0);
     if(dx&&dy) { dx*=0.707; dy*=0.707; }
@@ -389,7 +421,8 @@ function update() {
         sfx(w.name==='SHOTGUN'?200:500, 'square', 0.1, 0.15, -300);
         for(let i=0; i<(w.count||1); i++) {
             let a = PLAYER.angle + (Math.random()-0.5)*(w.spread||0.02);
-            entities.bullets.push({x:PLAYER.x+Math.cos(a)*20, y:PLAYER.y+Math.sin(a)*20, vx:Math.cos(a)*w.spd, vy:Math.sin(a)*w.spd, dmg:w.dmg, color:w.color, pen:w.pen||1, life:100});
+            // SENIOR DEV NOTE: Added 'isEnemy: false' to distinguish player bullets
+            entities.bullets.push({x:PLAYER.x+Math.cos(a)*20, y:PLAYER.y+Math.sin(a)*20, vx:Math.cos(a)*w.spd, vy:Math.sin(a)*w.spd, dmg:w.dmg, color:w.color, pen:w.pen||1, life:100, isEnemy: false});
         }
         if(!w.auto) MOUSE.down=false;
     }
@@ -402,36 +435,110 @@ function update() {
         GAME.state='shop'; setTimeout(() => openShop(GAME.shopTab), 1200);
     }
 
+    // UPDATE BULLETS
     entities.bullets.forEach((b,i)=>{
         b.x+=b.vx; b.y+=b.vy;
-        if(b.x<0||b.x>W||b.y<0||b.y>H||--b.life<0) entities.bullets.splice(i,1);
-    });
-
-    entities.enemies.forEach((e,i)=>{
-        let ang = Math.atan2(PLAYER.y-e.y, PLAYER.x-e.x);
-        e.x+=Math.cos(ang)*e.spd; e.y+=Math.sin(ang)*e.spd; e.angle=ang;
-        
-        if(dist(PLAYER,e) < PLAYER.r+e.r) {
-            if(PLAYER.hitCD <= 0) {
-                let hitDmg = Math.floor(e.dmg * 1.5); 
-                hitDmg = Math.max(1, hitDmg);
-                
-                PLAYER.hp -= hitDmg;
-                PLAYER.hitCD = 30; // 0.5 seconds immunity
-                
-                spawnFloatingDmg(PLAYER.x, PLAYER.y - 30, hitDmg);
-                spawnParticles(PLAYER.x,PLAYER.y,10,'#f05');
-                sfx(100,'sawtooth',0.1,0.2); 
-                updateHUD();
-            }
+        if(b.x<0||b.x>W||b.y<0||b.y>H||--b.life<0) {
+            entities.bullets.splice(i,1);
+            return;
         }
 
+        // Enemy Bullet hitting Player
+        if (b.isEnemy) {
+            if (dist(b, PLAYER) < PLAYER.r + 5) {
+                takeDamage(b.dmg);
+                spawnParticles(PLAYER.x, PLAYER.y, 5, '#f00');
+                entities.bullets.splice(i, 1);
+            }
+        }
+    });
+
+    // UPDATE ENEMIES
+    entities.enemies.forEach((e,i)=>{
+        let dToPlayer = dist(PLAYER, e);
+        let ang = Math.atan2(PLAYER.y-e.y, PLAYER.x-e.x);
+
+        // AI LOGIC
+        if (e.type === 'trapezoid') {
+            // Keep distance logic
+            if (dToPlayer < GAME_CONFIG.trapezoid.range) {
+                // Move away
+                e.x -= Math.cos(ang) * e.spd;
+                e.y -= Math.sin(ang) * e.spd;
+            } else if (dToPlayer > GAME_CONFIG.trapezoid.range + 50) {
+                // Move closer
+                e.x += Math.cos(ang) * e.spd;
+                e.y += Math.sin(ang) * e.spd;
+            }
+            // Strafe slightly
+            e.x += Math.cos(ang + Math.PI/2) * (e.spd * 0.5); 
+            e.y += Math.sin(ang + Math.PI/2) * (e.spd * 0.5);
+
+            e.angle = ang;
+
+            // Shooting Logic
+            if (Date.now() - e.lastShot > e.fireRate) {
+                e.lastShot = Date.now();
+                entities.bullets.push({
+                    x: e.x, y: e.y,
+                    vx: Math.cos(ang) * GAME_CONFIG.trapezoid.bulletSpeed,
+                    vy: Math.sin(ang) * GAME_CONFIG.trapezoid.bulletSpeed,
+                    dmg: 15 + (GAME.wave * 0.5),
+                    color: '#00f3ff',
+                    life: 150,
+                    isEnemy: true,
+                    pen: 1
+                });
+                sfx(800, 'triangle', 0.1, 0.1);
+            }
+
+        } else if (e.type === 'boss') {
+            // Boss Movement (Slow tracking)
+            e.x += Math.cos(ang) * e.spd;
+            e.y += Math.sin(ang) * e.spd;
+            e.angle = ang;
+
+            // BOSS SUMMONING MECHANIC
+            let summonRate = GAME_CONFIG.boss.summonInterval;
+            // Enrage: Summon faster when low HP
+            if (e.hp < e.maxHp * 0.5) summonRate *= 0.7;
+            if (e.hp < e.maxHp * 0.25) summonRate *= 0.7;
+
+            if (Date.now() - e.lastSummon > summonRate) {
+                e.lastSummon = Date.now();
+                spawnMinionAround(e.x, e.y);
+                sfx(100, 'sawtooth', 0.5, 0.5); // Summon sound
+                spawnText("REINFORCEMENTS", e.x, e.y - 80, 20, '#ff0000');
+            }
+
+        } else {
+            // Normal chase behavior
+            e.x+=Math.cos(ang)*e.spd; e.y+=Math.sin(ang)*e.spd; e.angle=ang;
+        }
+        
+        // Player Collision
+        if(dToPlayer < PLAYER.r+e.r) {
+            let hitDmg = Math.floor(e.dmg * 1.5); 
+            takeDamage(hitDmg);
+        }
+
+        // Bullet Collision (Player bullets hitting Enemies)
         for(let j=entities.bullets.length-1; j>=0; j--) {
             let b = entities.bullets[j];
+            if (b.isEnemy) continue; // Skip enemy bullets hitting enemies
+
             if(dist(b,e) < e.r+10) {
-                e.hp = Math.max(0, e.hp - b.dmg);
+                // Crit calculation
+                let finalDmg = b.dmg;
+                let isCrit = Math.random() < PLAYER.critChance;
+                if (isCrit) finalDmg *= 2;
+
+                e.hp = Math.max(0, e.hp - finalDmg);
+                spawnFloatingDmg(e.x, e.y - 20, finalDmg, isCrit); // Show dmg
                 spawnParticles(b.x, b.y, 5, e.color, 3);
+                
                 if(--b.pen<=0) entities.bullets.splice(j,1);
+                
                 if(e.hp<=0) {
                     if (e.type === 'exploder') {
                         handleExplosion(e.x, e.y, e.explosionRadius, e.explosionDamage);
@@ -455,6 +562,19 @@ function update() {
     });
 }
 
+function takeDamage(amount) {
+    if(PLAYER.hitCD <= 0) {
+        amount = Math.max(1, amount);
+        PLAYER.hp -= amount;
+        PLAYER.hitCD = 30; // Immunity frames
+        
+        spawnFloatingDmg(PLAYER.x, PLAYER.y - 30, amount, false, true); // True for player dmg
+        spawnParticles(PLAYER.x,PLAYER.y,10,'#f05');
+        sfx(100,'sawtooth',0.1,0.2); 
+        updateHUD();
+    }
+}
+
 function handleExplosion(x, y, radius, damage) {
     spawnParticles(x, y, 50, '#5f5', 10);
     sfx(50, 'triangle', 0.5, 0.4, -20);
@@ -464,64 +584,89 @@ function handleExplosion(x, y, radius, damage) {
         }
     });
     if (dist({x,y}, PLAYER) < radius) {
-        PLAYER.hp -= damage / 2;
-        spawnFloatingDmg(PLAYER.x, PLAYER.y - 40, damage/2);
-        updateHUD();
-        spawnParticles(PLAYER.x, PLAYER.y, 20, '#f05');
+        takeDamage(damage/2);
     }
 }
 
 function spawnBoss() {
-    // Spawna no topo da tela, fora de visão inicialmente
+    // UPDATED BOSS STATS FOR V2.5
+    let hp = GAME_CONFIG.boss.baseHp + (GAME.wave * GAME_CONFIG.boss.hpPerWave);
+    
     let e = {
         x: W / 2,
         y: -100,
-        r: 80, // Muito grande
-        hp: 3000 + (GAME.wave * 200), // Muita vida
-        maxHp: 3000 + (GAME.wave * 200),
-        spd: 1.5, // Lento
-        dmg: 50,
+        r: 90, 
+        hp: hp, 
+        maxHp: hp,
+        spd: 1.2, 
+        dmg: 60,
         val: 1000,
-        color: '#ff0000', // Vermelho
+        color: '#ff0000', 
         type: 'boss',
-        angle: Math.PI / 2
+        angle: Math.PI / 2,
+        lastSummon: 0 // Initialize summon timer
     };
     entities.enemies.push(e);
+}
+
+function spawnMinionAround(bx, by) {
+    // Spawns 3 minions around the boss
+    for(let i=0; i<3; i++) {
+        let angle = Math.random() * Math.PI * 2;
+        let dist = 100;
+        let x = bx + Math.cos(angle) * dist;
+        let y = by + Math.sin(angle) * dist;
+        // Basic minion logic reused
+        let e = {x, y, r:15, hp:50+GAME.wave*5, maxHp:50+GAME.wave*5, spd:3, dmg:10, val:5, color:'#933', type:'normal'};
+        entities.enemies.push(e);
+        GAME.active++; // Need to kill these too
+    }
 }
 
 function spawnEnemy() {
     let side=Math.floor(Math.random()*4), x, y, rand=Math.random();
     if(side===0){x=Math.random()*W;y=-30} else if(side===1){x=W+30;y=Math.random()*H} else if(side===2){x=Math.random()*W;y=H+30} else{x=-30;y=Math.random()*H}
+    
     let e = {x, y, r:18, hp:40+GAME.wave*8, maxHp:40+GAME.wave*8, spd:2+Math.random(), dmg:10, val:15, color:'#933', type:'normal'};
-    if (GAME.wave >= 17 && rand < 0.15) {
+    
+    // NEW ENEMY: TRAPEZOID (Wave 50+)
+    if (GAME.wave >= GAME_CONFIG.trapezoid.waveStart && rand < 0.2) {
+        e.type = 'trapezoid';
+        e.color = '#0088ff';
+        e.r = 22;
+        e.hp *= GAME_CONFIG.trapezoid.hpMult;
+        e.maxHp *= GAME_CONFIG.trapezoid.hpMult;
+        e.spd *= 0.8; // Slower movement
+        e.val = 80;
+        e.lastShot = 0; // Init shooting timer
+        e.fireRate = GAME_CONFIG.trapezoid.fireRate;
+    } 
+    else if (GAME.wave >= 17 && rand < 0.15) {
         e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100;
     } else if (GAME.wave >= 10 && rand < 0.3) {
         e.type = 'juggernaut'; e.color = '#527'; e.r = 28; e.hp *= 3.5; e.maxHp *= 3.5; e.spd *= 0.6; e.val = 50;
     } else if (GAME.wave >= 4 && rand < 0.55) {
-        e.type = 'dasher'; 
-        e.color = '#c92'; 
-        e.r = 14; 
-        e.hp *= 0.6; 
-        e.maxHp *= 0.6; 
-        e.spd *= 1.8; 
-        e.val = 20; 
-        e.dmg = 3.4; /* <--- 5 de Dano real */
+        e.type = 'dasher'; e.color = '#c92'; e.r = 14; e.hp *= 0.6; e.maxHp *= 0.6; e.spd *= 1.8; e.val = 20; e.dmg = 3.4;
     }
     entities.enemies.push(e);
 }
 function spawnParticles(x,y,n,c,s=5) { for(let i=0;i<n;i++) entities.particles.push({x,y,vx:(Math.random()-0.5)*s,vy:(Math.random()-0.5)*s,life:1,color:c,decay:0.02+Math.random()*0.03,size:2+Math.random()*3}); }
 function spawnText(t,x,y,s,c) { entities.texts.push({text:t,x,y,size:s,color:c,life:2}); }
 
-function spawnFloatingDmg(x, y, amount) {
+function spawnFloatingDmg(x, y, amount, isCrit = false, isPlayerDmg = false) {
     if (!SETTINGS.dmgText) return; 
+    let color = isPlayerDmg ? '#ff0000' : (isCrit ? '#ffff00' : '#ff0055');
+    let scale = isCrit ? 0.8 : 0.5;
+    let txt = Math.floor(amount) + (isCrit ? '!' : '');
+    
     entities.damageTexts.push({
-        text: Math.floor(amount),
+        text: txt,
         x: x,
         y: y,
         vy: -1.5,
         life: 1.0,
-        scale: 0.5,
-        color: '#ff0055'
+        scale: scale,
+        color: color
     });
 }
 
@@ -537,7 +682,7 @@ function draw() {
     for(let i=-PLAYER.y*0.1%50; i<H; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(W,i); ctx.stroke(); }
 
     entities.bullets.forEach(b => {
-        ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(b.x, b.y, 3, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(b.x, b.y, b.isEnemy ? 4 : 3, 0, Math.PI*2); ctx.fill();
         ctx.globalAlpha=0.3; ctx.strokeStyle=b.color; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x-b.vx*3, b.y-b.vy*3); ctx.stroke(); ctx.globalAlpha=1;
     });
     entities.particles.forEach(p => { ctx.globalAlpha=p.life*0.6; ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size/2, 0, Math.PI*2); ctx.fill(); });
@@ -552,17 +697,32 @@ function draw() {
             ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.angle);
             ctx.moveTo(e.r, 0); ctx.lineTo(-e.r/2, -e.r*0.8); ctx.lineTo(-e.r/2, e.r*0.8);
             ctx.restore();
+        } else if (e.type === 'trapezoid') {
+            // RENDER TRAPEZOID
+            ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.angle);
+            // Draw Trapezoid shape pointing right
+            ctx.moveTo(e.r, -e.r/2); // Top right
+            ctx.lineTo(e.r, e.r/2);  // Bottom right
+            ctx.lineTo(-e.r, e.r);   // Bottom left
+            ctx.lineTo(-e.r, -e.r);  // Top left
+            ctx.closePath();
+            ctx.restore();
         } else {
-            // Desenho padrão (Bolas) - Isso funcionará automaticamente para o Boss
+            // Default Circle (Boss, Normal, Exploder)
             ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
         }
-        ctx.closePath();
+        
+        if (e.type !== 'trapezoid' && e.type !== 'dasher' && e.type !== 'juggernaut') ctx.closePath(); // Close path for circle types
+        
         ctx.fill(); ctx.stroke();
+        
         if (e.type === 'exploder') {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; ctx.beginPath();
             let pulse = e.r * 0.4 * (1 + Math.sin(Date.now() * 0.01));
             ctx.arc(e.x, e.y, pulse, 0, Math.PI * 2); ctx.fill();
         }
+        
+        // HP Bar
         ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fillRect(e.x-e.r, e.y-e.r-12, e.r*2, 4);
         ctx.fillStyle='#f55'; ctx.fillRect(e.x-e.r, e.y-e.r-12, (e.r*2)*(e.hp/e.maxHp), 4);
     });
@@ -582,12 +742,8 @@ function draw() {
         let fontSize = 24 * t.scale;
         ctx.font = `900 ${fontSize}px 'Orbitron'`;
         ctx.textAlign = 'center';
-        
-        // Shadow for readability
         ctx.fillStyle = 'rgba(0,0,0,0.8)';
         ctx.fillText(t.text, t.x + 2, t.y + 2);
-        
-        // Main text
         ctx.fillStyle = t.color;
         ctx.fillText(t.text, t.x, t.y);
     });
@@ -638,6 +794,8 @@ function addItem(grid, name, desc, priceTxt, owned, idx, type) {
             if(u.maxHp) {PLAYER.maxHp+=u.maxHp; PLAYER.hp+=u.maxHp;} 
             if(u.speed) PLAYER.speed+=u.speed;
             if(u.multiplier) { GAME.cashMultiplier = u.multiplier; u.unlocked = true; }
+            if(u.regen) { PLAYER.regen = u.regen; u.unlocked = true; }
+            if(u.crit) { PLAYER.critChance = u.crit; u.unlocked = true; }
             sfx(600,'sine',0.3); 
             openShop('u'); 
         };
