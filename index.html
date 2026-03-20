@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShOter</title>
+    <title>ShOter - v4.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -181,15 +181,14 @@
 
 <div id="update-modal" class="menu-screen hidden">
     <div class="menu-bg-grid" style="animation-direction: alternate;"></div>
-    <h2 style="font-size: 50px; color: var(--accent); margin-bottom: 20px; z-index: 2;">WHAT'S NEW IN V3.0</h2>
+    <h2 style="font-size: 50px; color: var(--accent); margin-bottom: 20px; z-index: 2;">WHAT'S NEW IN V4.0</h2>
     <div id="patch-notes-content" style="max-height: 50vh; z-index: 2;">
-        <h3>MAJOR FEATURES ADDED!</h3>
+        <h3>THREAT UPDATE & NEW FEATURES!</h3>
         <ul>
-            <li><strong>💣 NUKE BOMB:</strong> Wipe out all enemies on the screen! Buy it in the shop and press [Q] to detonate. Price scales with higher waves.</li>
-            <li><strong>🤖 BOSS CHAOS MODE:</strong> Bosses no longer spawn alone. Prepare to face massive hordes of advanced enemies alongside the Boss!</li>
-            <li><strong>🎨 SKINS BY HIGH SCORE:</strong> You now unlock cosmetic skins permanently by surviving higher waves!</li>
-            <li><strong>🔍 WEAPON INFO:</strong> Click the new [i] button in the shop to see detailed damage, fire rate, and projectile stats.</li>
-            <li><strong>🔐 SECRET CODES:</strong> Found a promo code? Redeem it in the Settings or Pause menu for bonus cash!</li>
+            <li><strong>🟥 NOVO INIMIGO: MINER (Wave 35+):</strong> Um inimigo rápido que espalha minas mortais pelo chão. Morte instantânea se você pisar! (Dica: A Nuke Bomb destrói as minas).</li>
+            <li><strong>🔺 NOVO INIMIGO: TRAPEZOID (Wave 50+):</strong> Atirador de elite que mantém distância e dispara projéteis velozes.</li>
+            <li><strong>🎨 SKINS NA LOJA (IN-GAME):</strong> Agora você tem uma aba extra na Loja para trocar suas skins desbloqueadas diretamente entre as ondas!</li>
+            <li><strong>💣 NUKE BOMB & BOSSES:</strong> A bomba limpa a tela de ameaças, e os Bosses agora invocam hordas inteiras com eles!</li>
         </ul>
     </div>
     <button class="btn" onclick="closeUpdateModal()" style="margin-top: 30px; font-size: 20px; padding: 15px 50px; z-index: 2;">CONTINUE >></button>
@@ -208,7 +207,7 @@
     </div>
     
     <div style="margin-top: 40px; color: #666; z-index: 2;">[WASD / ARROWS] MOVE // [MOUSE] AIM & FIRE</div>
-    <div id="patch-notes-btn" onclick="openPatchNotes()">v3.0 Updates</div>
+    <div id="patch-notes-btn" onclick="openPatchNotes()">v4.0 Updates</div>
 </div>
 
 <div id="skins-menu" class="menu-screen hidden">
@@ -265,6 +264,7 @@
     <div id="shop-tabs">
         <button class="tab-btn active" onclick="switchTab('w')" data-txt="weapons">WEAPONS</button>
         <button class="tab-btn" onclick="switchTab('u')" data-txt="upgrades">UPGRADES</button>
+        <button class="tab-btn" onclick="switchTab('s')" data-txt="skins">SKINS</button>
     </div>
     
     <div id="shop-grid"></div>
@@ -273,8 +273,7 @@
 
 <div id="weapon-info-modal" class="menu-screen hidden" style="background: rgba(10, 10, 18, 0.98); z-index: 110;">
     <h2 id="wi-title" style="font-size: 40px; color: var(--accent); margin-bottom: 20px; z-index: 2;">WEAPON</h2>
-    <div id="wi-content" style="background: var(--bg-panel); border: 2px solid #333; padding: 30px; border-radius: 10px; width: 400px; text-align: left; font-size: 18px; color: #ccc; line-height: 1.8; z-index: 2;">
-        </div>
+    <div id="wi-content" style="background: var(--bg-panel); border: 2px solid #333; padding: 30px; border-radius: 10px; width: 400px; text-align: left; font-size: 18px; color: #ccc; line-height: 1.8; z-index: 2;"></div>
     <button class="btn danger" onclick="closeWeaponInfo()" style="margin-top: 30px;" data-txt="back">BACK</button>
 </div>
 
@@ -311,17 +310,18 @@
 </div>
 
 <div id="patch-notes-menu" class="menu-screen hidden">
-    <h2 style="font-size: 50px; color: var(--accent); margin-bottom: 20px; z-index: 2;">PATCH NOTES v3.0</h2>
+    <h2 style="font-size: 50px; color: var(--accent); margin-bottom: 20px; z-index: 2;">PATCH NOTES v4.0</h2>
     <div id="patch-notes-content">
-        <h3>Threat Update (v3.0)</h3>
-        <p><strong>BOSS OVERHAUL:</strong> The Boss unit has been re-engineered. It now has significantly higher durability and will deploy support minions immediately upon arrival. Expect heavier resistance.</p>
-        <p><strong>NEW HOSTILE: Trapezoid (Wave 50+):</strong> A long-range marksman unit. Maintains distance and fires energy projectiles. Prioritize targets accordingly.</p>
+        <h3>New Hostiles (v4.0)</h3>
+        <p><strong>MINER (Wave 35+):</strong> Um novo inimigo ágil que foca em controle de área soltando minas ativas. Pisar em uma mina resulta em morte instantânea (dano de 9999). Seja cauteloso com seus movimentos.</p>
+        <p><strong>TRAPEZOID (Wave 50+):</strong> Unidade que mantém distância estratégica do jogador enquanto dispara projéteis velozes. Priorize focar neles antes que sobrecarreguem o mapa.</p>
+        <p><strong>BOSS OVERHAUL:</strong> Bosses têm vida escalável aprimorada e sempre invocam tropas de suporte pesadas.</p>
         
-        <h3>Armory Expansion & Features</h3>
-        <p><strong>Nuke Bomb:</strong> Added a screen-wipe tactical explosive.</p>
-        <p><strong>Skin System:</strong> Unlock skins by reaching higher waves.</p>
-        <p><strong>Promo Codes:</strong> Hidden codes can grant you bonus cash.</p>
-        <p><strong>Weapon Intel:</strong> Advanced weapon statistics added to the armory.</p>
+        <h3>Armory & Systems Expansion</h3>
+        <p><strong>IN-GAME SKINS:</strong> Atendendo a pedidos, agora você pode mudar suas skins equipadas diretamente dentro da Loja (Armory) entre as ondas!</p>
+        <p><strong>NUKE BOMB:</strong> Adicionado explosivo tático que limpa todos os inimigos da tela. *Também destrói minas armadas no chão.*</p>
+        <p><strong>PROMO CODES:</strong> Códigos escondidos que dão bônus massivos em dinheiro.</p>
+        <p><strong>WEAPON INTEL:</strong> Adicionado botão `[i]` no armazém para ver detalhes técnicos de cada arma.</p>
     </div>
     <button class="btn danger" onclick="closePatchNotes()" style="margin-top: 20px;" data-txt="back">BACK</button>
 </div>
@@ -397,7 +397,7 @@ const SKINS = [
     { name:'ABYSSAL', reqWave: 50, body:'#90f', ring:'#0ff' }
 ];
 
-let entities = { enemies:[], bullets:[], particles:[], texts:[], damageTexts:[] };
+let entities = { enemies:[], bullets:[], particles:[], texts:[], damageTexts:[], mines:[] };
 
 function updateMenuData() {
     let el2 = document.getElementById('skins-high-score');
@@ -434,7 +434,7 @@ function openPatchNotes() { document.getElementById('main-menu').classList.add('
 function closePatchNotes() { document.getElementById('patch-notes-menu').classList.add('hidden'); document.getElementById('main-menu').classList.remove('hidden'); }
 
 function closeUpdateModal() {
-    try { localStorage.setItem('shoter_seen_v3', 'true'); } catch(e){}
+    try { localStorage.setItem('shoter_seen_v4', 'true'); } catch(e){}
     document.getElementById('update-modal').classList.add('hidden');
     document.getElementById('main-menu').classList.remove('hidden');
 }
@@ -477,7 +477,6 @@ function renderSkins() {
     });
 }
 
-// CODES MENU LOGIC (ATUALIZADO)
 function openCodesMenu(source) {
     codeMenuSource = source;
     document.getElementById(source + '-menu').classList.add('hidden');
@@ -503,12 +502,14 @@ function redeemCode() {
         msg.style.color = 'var(--danger)'; msg.innerText = lang('code_used'); sfx(150, 'sawtooth', 0.3); return;
     }
 
-    // DEFINIÇÃO DAS RECOMPENSAS
     let reward = 0;
     if (code === 'TESTE1000') reward = 1000;
     else if (code === 'LEVY10000') reward = 10000;
     else if (code === 'SHOTER123') reward = 500;
     else if (code === 'POBREZA') reward = 1;
+    else if (code === 'DINONERD') reward = 100000;
+    else if (code === 'COPO') reward = 150;
+    else if (code === 'SLEEPOVER') reward = 1500;
 
     if (reward > 0) {
         SAVE_DATA.usedCodes.push(code);
@@ -521,7 +522,6 @@ function redeemCode() {
         }
         
         msg.style.color = 'var(--accent)'; 
-        // Substitui o {VAL} pelo valor dinâmico ganho
         msg.innerText = lang('code_success_cash').replace('{VAL}', reward); 
         input.value = ''; 
         sfx(600, 'sine', 0.5); 
@@ -532,7 +532,6 @@ function redeemCode() {
     }
 }
 
-// WEAPON INFO MENU
 function openWeaponInfo(idx) {
     let w = WEAPONS[idx];
     document.getElementById('wi-title').innerText = w.name;
@@ -623,7 +622,7 @@ function startGame() {
     
     WEAPONS.forEach((w,i) => { w.unlocked = (i===0); });
     UPGRADES.forEach(u => { u.unlocked=false; if(u.regen) u.unlocked=false; }); 
-    entities = { enemies:[], bullets:[], particles:[], texts:[], damageTexts:[] };
+    entities = { enemies:[], bullets:[], particles:[], texts:[], damageTexts:[], mines:[] };
     
     document.querySelectorAll('.menu-screen').forEach(el=>el.classList.add('hidden'));
     nextWave(); loop();
@@ -643,6 +642,7 @@ function nextWave() {
 
 function activateBomb() {
     PLAYER.hasBomb = false; GAME.flash = 1.0; sfx(50, 'square', 1.5, 0.8, -40); 
+    entities.mines = []; 
     for (let i = entities.enemies.length - 1; i >= 0; i--) {
         let e = entities.enemies[i];
         if (e.type === 'exploder') handleExplosion(e.x, e.y, e.explosionRadius, e.explosionDamage);
@@ -690,6 +690,17 @@ function update() {
     if(GAME.toSpawn>0 && --GAME.spawnTimer<=0) { GAME.toSpawn--; GAME.active++; GAME.spawnTimer=Math.max(10, 50 - GAME.wave); spawnEnemy(); }
     if(GAME.toSpawn<=0 && GAME.active<=0 && GAME.state==='playing') { GAME.state='shop'; setTimeout(() => openShop(GAME.shopTab), 1200); }
     
+    for (let i = entities.mines.length - 1; i >= 0; i--) {
+        let m = entities.mines[i];
+        m.life++;
+        if (m.life > 90) {
+            if (dist(PLAYER, m) < PLAYER.r + m.r) {
+                handleExplosion(m.x, m.y, 100, 9999); 
+                entities.mines.splice(i, 1);
+            }
+        }
+    }
+
     entities.bullets.forEach((b,i) => {
         b.x+=b.vx; b.y+=b.vy;
         if(b.x<0||b.x>W||b.y<0||b.y>H||--b.life<0) { entities.bullets.splice(i,1); return; }
@@ -698,6 +709,7 @@ function update() {
     
     entities.enemies.forEach((e,i) => {
         let ang = Math.atan2(PLAYER.y-e.y, PLAYER.x-e.x);
+        
         if (e.type === 'trapezoid') {
             let dToPlayer = dist(PLAYER, e);
             if (dToPlayer < GAME_CONFIG.trapezoid.range) { e.x -= Math.cos(ang) * e.spd; e.y -= Math.sin(ang) * e.spd; } 
@@ -708,6 +720,13 @@ function update() {
                 entities.bullets.push({ x: e.x, y: e.y, vx: Math.cos(ang) * GAME_CONFIG.trapezoid.bulletSpeed, vy: Math.sin(ang) * GAME_CONFIG.trapezoid.bulletSpeed, dmg: 15 + (GAME.wave * 0.5), color: '#00f3ff', life: 150, isEnemy: true, pen: 1 });
                 sfx(800, 'triangle', 0.1, 0.1);
             }
+        } else if (e.type === 'miner') {
+            e.x += Math.cos(ang) * e.spd; e.y += Math.sin(ang) * e.spd; e.angle = ang;
+            if (Date.now() - e.lastMine > e.mineInterval) {
+                e.lastMine = Date.now();
+                entities.mines.push({ x: e.x, y: e.y, r: 10, color: '#ff0055', life: 0 });
+                sfx(900, 'square', 0.1, 0.1); 
+            }
         } else if (e.type === 'boss') {
             e.x += Math.cos(ang) * e.spd; e.y += Math.sin(ang) * e.spd; e.angle = ang;
             let summonRate = GAME_CONFIG.boss.summonInterval - (GAME.wave * GAME_CONFIG.boss.summonDecrease);
@@ -715,7 +734,9 @@ function update() {
             if (e.hp < e.maxHp * 0.5) summonRate *= 0.7;
             if (e.hp < e.maxHp * 0.25) summonRate *= 0.7;
             if (Date.now() - e.lastSummon > summonRate) { e.lastSummon = Date.now(); spawnMinionAround(e.x, e.y); sfx(100, 'sawtooth', 0.5, 0.5); spawnText("REINFORCEMENTS", e.x, e.y - 80, 20, '#ff0000'); }
-        } else { e.x+=Math.cos(ang)*e.spd; e.y+=Math.sin(ang)*e.spd; e.angle=ang; }
+        } else { 
+            e.x += Math.cos(ang)*e.spd; e.y += Math.sin(ang)*e.spd; e.angle=ang; 
+        }
         
         let currentDist = dist(PLAYER, e);
         if(currentDist < PLAYER.r+e.r) {
@@ -771,10 +792,22 @@ function spawnMinionAround(bx, by) {
         let angle = Math.random() * Math.PI * 2; let dist = 120 + Math.random() * 80;
         let x = bx + Math.cos(angle) * dist; let y = by + Math.sin(angle) * dist; let rand = Math.random();
         let e = {x, y, r:18, hp:40+GAME.wave*8, maxHp:40+GAME.wave*8, spd:2+Math.random(), dmg:10, val:15, color:'#933', type:'normal'};
-        if (GAME.wave >= GAME_CONFIG.trapezoid.waveStart && rand < 0.15) { e.type = 'trapezoid'; e.color = '#0088ff'; e.r = 22; e.hp *= GAME_CONFIG.trapezoid.hpMult; e.maxHp *= GAME_CONFIG.trapezoid.hpMult; e.spd *= 0.8; e.val = 80; e.lastShot = 0; e.fireRate = GAME_CONFIG.trapezoid.fireRate; } 
-        else if (GAME.wave >= 17 && rand < 0.25) { e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100; } 
-        else if (GAME.wave >= 10 && rand < 0.4) { e.type = 'juggernaut'; e.color = '#527'; e.r = 28; e.hp *= 3.5; e.maxHp *= 3.5; e.spd *= 0.6; e.val = 50; } 
-        else if (GAME.wave >= 4 && rand < 0.6) { e.type = 'dasher'; e.color = '#c92'; e.r = 14; e.hp *= 0.6; e.maxHp *= 0.6; e.spd *= 1.8; e.val = 20; e.dmg = 3.4; }
+        
+        if (GAME.wave >= GAME_CONFIG.trapezoid.waveStart && rand < 0.15) { 
+            e.type = 'trapezoid'; e.color = '#0088ff'; e.r = 22; e.hp *= GAME_CONFIG.trapezoid.hpMult; e.maxHp *= GAME_CONFIG.trapezoid.hpMult; e.spd *= 0.8; e.val = 80; e.lastShot = 0; e.fireRate = GAME_CONFIG.trapezoid.fireRate; 
+        } 
+        else if (GAME.wave >= 35 && rand < 0.30) {
+            e.type = 'miner'; e.color = '#ff00ff'; e.r = 16; e.hp *= 0.5; e.maxHp *= 0.5; e.spd *= 1.8; e.val = 60; e.lastMine = Date.now(); e.mineInterval = Math.max(600, 2500 - (GAME.wave - 35) * 80);
+        }
+        else if (GAME.wave >= 17 && rand < 0.45) { 
+            e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100; 
+        } 
+        else if (GAME.wave >= 10 && rand < 0.65) { 
+            e.type = 'juggernaut'; e.color = '#527'; e.r = 28; e.hp *= 3.5; e.maxHp *= 3.5; e.spd *= 0.6; e.val = 50; 
+        } 
+        else if (GAME.wave >= 4 && rand < 0.85) { 
+            e.type = 'dasher'; e.color = '#c92'; e.r = 14; e.hp *= 0.6; e.maxHp *= 0.6; e.spd *= 1.8; e.val = 20; e.dmg = 3.4; 
+        }
         entities.enemies.push(e); GAME.active++;
     }
 }
@@ -783,10 +816,22 @@ function spawnEnemy() {
     let side=Math.floor(Math.random()*4), x, y, rand=Math.random();
     if(side===0){x=Math.random()*W;y=-30} else if(side===1){x=W+30;y=Math.random()*H} else if(side===2){x=Math.random()*W;y=H+30} else{x=-30;y=Math.random()*H}
     let e = {x, y, r:18, hp:40+GAME.wave*8, maxHp:40+GAME.wave*8, spd:2+Math.random(), dmg:10, val:15, color:'#933', type:'normal'};
-    if (GAME.wave >= GAME_CONFIG.trapezoid.waveStart && rand < 0.2) { e.type = 'trapezoid'; e.color = '#0088ff'; e.r = 22; e.hp *= GAME_CONFIG.trapezoid.hpMult; e.maxHp *= GAME_CONFIG.trapezoid.hpMult; e.spd *= 0.8; e.val = 80; e.lastShot = 0; e.fireRate = GAME_CONFIG.trapezoid.fireRate; } 
-    else if (GAME.wave >= 17 && rand < 0.15) { e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100; } 
-    else if (GAME.wave >= 10 && rand < 0.3) { e.type = 'juggernaut'; e.color = '#527'; e.r = 28; e.hp *= 3.5; e.maxHp *= 3.5; e.spd *= 0.6; e.val = 50; } 
-    else if (GAME.wave >= 4 && rand < 0.55) { e.type = 'dasher'; e.color = '#c92'; e.r = 14; e.hp *= 0.6; e.maxHp *= 0.6; e.spd *= 1.8; e.val = 20; e.dmg = 3.4; }
+    
+    if (GAME.wave >= GAME_CONFIG.trapezoid.waveStart && rand < 0.15) { 
+        e.type = 'trapezoid'; e.color = '#0088ff'; e.r = 22; e.hp *= GAME_CONFIG.trapezoid.hpMult; e.maxHp *= GAME_CONFIG.trapezoid.hpMult; e.spd *= 0.8; e.val = 80; e.lastShot = 0; e.fireRate = GAME_CONFIG.trapezoid.fireRate; 
+    } 
+    else if (GAME.wave >= 35 && rand < 0.30) {
+        e.type = 'miner'; e.color = '#ff00ff'; e.r = 16; e.hp *= 0.5; e.maxHp *= 0.5; e.spd *= 1.8; e.val = 60; e.lastMine = Date.now(); e.mineInterval = Math.max(600, 2500 - (GAME.wave - 35) * 80);
+    }
+    else if (GAME.wave >= 17 && rand < 0.45) { 
+        e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100; 
+    } 
+    else if (GAME.wave >= 10 && rand < 0.65) { 
+        e.type = 'juggernaut'; e.color = '#527'; e.r = 28; e.hp *= 3.5; e.maxHp *= 3.5; e.spd *= 0.6; e.val = 50; 
+    } 
+    else if (GAME.wave >= 4 && rand < 0.85) { 
+        e.type = 'dasher'; e.color = '#c92'; e.r = 14; e.hp *= 0.6; e.maxHp *= 0.6; e.spd *= 1.8; e.val = 20; e.dmg = 3.4; 
+    }
     entities.enemies.push(e);
 }
 
@@ -813,6 +858,20 @@ function draw() {
         ctx.globalAlpha=0.3; ctx.strokeStyle=b.color; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x-b.vx*3, b.y-b.vy*3); ctx.stroke(); ctx.globalAlpha=1;
     });
     
+    entities.mines.forEach(m => {
+        ctx.fillStyle = m.life < 90 ? (m.life % 20 < 10 ? '#ffff00' : '#ff0000') : '#ff5500';
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, m.r, 0, Math.PI*2);
+        ctx.fill();
+        if (m.life >= 90) {
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(m.x, m.y, m.r + Math.abs(Math.sin(Date.now()*0.005))*8, 0, Math.PI*2);
+            ctx.stroke();
+        }
+    });
+
     entities.particles.forEach(p => { ctx.globalAlpha=p.life*0.6; ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size/2, 0, Math.PI*2); ctx.fill(); }); ctx.globalAlpha=1;
 
     entities.enemies.forEach(e => {
@@ -820,6 +879,7 @@ function draw() {
         if (e.type === 'juggernaut') { for(let i=0; i<6; i++) { let a=e.angle+i*Math.PI/3; ctx[i?'lineTo':'moveTo'](e.x+Math.cos(a)*e.r, e.y+Math.sin(a)*e.r); } ctx.closePath(); } 
         else if (e.type === 'dasher') { ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.angle); ctx.moveTo(e.r, 0); ctx.lineTo(-e.r/2, -e.r*0.8); ctx.lineTo(-e.r/2, e.r*0.8); ctx.closePath(); ctx.restore(); } 
         else if (e.type === 'trapezoid') { ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.angle); ctx.moveTo(e.r, -e.r/2); ctx.lineTo(e.r, e.r/2); ctx.lineTo(-e.r, e.r); ctx.lineTo(-e.r, -e.r); ctx.closePath(); ctx.restore(); } 
+        else if (e.type === 'miner') { ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.angle); ctx.moveTo(-e.r, -e.r); ctx.lineTo(e.r, -e.r); ctx.lineTo(e.r, e.r); ctx.lineTo(-e.r, e.r); ctx.closePath(); ctx.restore(); }
         else { ctx.arc(e.x, e.y, e.r, 0, Math.PI*2); ctx.closePath(); }
         
         ctx.fill(); ctx.stroke();
@@ -873,18 +933,55 @@ function switchTab(t) { GAME.shopTab=t; openShop(t); }
 
 function openShop(tab='w') {
     document.getElementById('shop-menu').classList.remove('hidden'); document.getElementById('shop-cash').innerText = GAME.cash;
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-txt')[0] === tab[0] ));
+    
+    // Atualiza botões da tab
+    document.querySelectorAll('#shop-tabs .tab-btn').forEach(b => {
+        let dt = b.getAttribute('data-txt');
+        b.classList.remove('active');
+        if (tab === 'w' && dt === 'weapons') b.classList.add('active');
+        if (tab === 'u' && dt === 'upgrades') b.classList.add('active');
+        if (tab === 's' && dt === 'skins') b.classList.add('active');
+    });
+    
     const g = document.getElementById('shop-grid'); g.innerHTML='';
     
-    if(tab==='w') WEAPONS.forEach((w,i)=>{ 
-        if(i===0)return; 
-        let desc = (SETTINGS.lang === 'pt' && w.descPt) ? w.descPt : (w.desc || `DMG: ${w.dmg}`);
-        if (w.isConsumable) { let limitReached = GAME.bombBoughtThisWave || PLAYER.hasBomb; let priceText = limitReached ? 'SOLD OUT' : '$'+w.price; addItem(g, w.name, desc, priceText, limitReached, i, 'w'); } 
-        else { addItem(g, w.name, desc, w.unlocked?lang('owned'):'$'+w.price, w.unlocked, i, 'w'); }
-    });
-    else if(tab==='u') UPGRADES.forEach((u,i)=>{ 
-        const isOwned = u.unlocked || false; const priceText = isOwned ? lang('purchased') : '$'+u.price; addItem(g, u.name, u.desc, priceText, isOwned, i, 'u'); 
-    });
+    if(tab==='w') {
+        WEAPONS.forEach((w,i)=>{ 
+            if(i===0)return; 
+            let desc = (SETTINGS.lang === 'pt' && w.descPt) ? w.descPt : (w.desc || `DMG: ${w.dmg}`);
+            if (w.isConsumable) { let limitReached = GAME.bombBoughtThisWave || PLAYER.hasBomb; let priceText = limitReached ? 'SOLD OUT' : '$'+w.price; addItem(g, w.name, desc, priceText, limitReached, i, 'w'); } 
+            else { addItem(g, w.name, desc, w.unlocked?lang('owned'):'$'+w.price, w.unlocked, i, 'w'); }
+        });
+    } else if(tab==='u') {
+        UPGRADES.forEach((u,i)=>{ 
+            const isOwned = u.unlocked || false; const priceText = isOwned ? lang('purchased') : '$'+u.price; addItem(g, u.name, u.desc, priceText, isOwned, i, 'u'); 
+        });
+    } else if(tab==='s') {
+        // Aba de Skins in-game
+        SKINS.forEach((s, i) => {
+            let unlocked = SAVE_DATA.highScore >= s.reqWave;
+            let isEquipped = PLAYER.sIndex === i;
+            let el = document.createElement('div');
+            el.className = 'shop-card';
+            el.style.borderColor = isEquipped ? 'var(--accent)' : (unlocked ? '#333' : '#300');
+            let statusTxt = unlocked ? (isEquipped ? lang('equipped') : lang('equip')) : `${lang('unlocked_at')} ${s.reqWave}`;
+            let colorPreview = `<div style="width:60px; height:60px; border-radius:50%; background:${s.body}; border: 4px solid ${s.ring}; margin: 0 auto 15px; box-shadow: 0 0 10px ${s.ring};"></div>`;
+            el.innerHTML = `<h3 style="color:${unlocked ? 'var(--accent)' : '#555'};margin:0 0 15px 0">${s.name}</h3>${colorPreview}<div style="color:${unlocked ? '#aaa' : '#555'};font-size:14px;margin-bottom:15px">${unlocked ? '' : lang('locked')}</div>`;
+            let btn = document.createElement('button');
+            btn.className = 'btn'; btn.style.padding = '10px 20px'; btn.style.fontSize = '14px'; btn.style.margin = '0';
+            btn.innerText = statusTxt; btn.disabled = !unlocked || isEquipped;
+            if (!unlocked) { btn.classList.add('danger'); btn.style.opacity = '0.5'; }
+            btn.onclick = () => {
+                if(unlocked) {
+                    SAVE_DATA.sIndex = i;
+                    PLAYER.sIndex = i; // Aplica instantaneamente
+                    try { localStorage.setItem('shoter_save', JSON.stringify(SAVE_DATA)); } catch(e){}
+                    sfx(600,'sine',0.3); openShop('s');
+                }
+            };
+            el.appendChild(btn); g.appendChild(el);
+        });
+    }
 }
 
 function lang(key) { return LANG[SETTINGS.lang][key] || key; }
@@ -934,13 +1031,34 @@ function gameOver() {
 
 window.onload = () => {
     let seen = false;
-    try { seen = localStorage.getItem('shoter_seen_v3'); } catch(e) {}
+    try { seen = localStorage.getItem('shoter_seen_v4'); } catch(e) {}
     
     if (!seen) {
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('update-modal').classList.remove('hidden');
     }
 };
+
+/* FORÇANDO FUNÇÕES PARA O ESCOPO GLOBAL */
+window.startGame = startGame;
+window.openSettings = openSettings;
+window.closeSettings = closeSettings;
+window.openPatchNotes = openPatchNotes;
+window.closePatchNotes = closePatchNotes;
+window.closeUpdateModal = closeUpdateModal;
+window.openSkinsMenu = openSkinsMenu;
+window.closeSkinsMenu = closeSkinsMenu;
+window.openCodesMenu = openCodesMenu;
+window.closeCodesMenu = closeCodesMenu;
+window.redeemCode = redeemCode;
+window.openWeaponInfo = openWeaponInfo;
+window.closeWeaponInfo = closeWeaponInfo;
+window.toggleAudio = toggleAudio;
+window.toggleDmgText = toggleDmgText;
+window.toggleLang = toggleLang;
+window.togglePause = togglePause;
+window.switchTab = switchTab;
+window.nextWave = nextWave;
 </script>
 </body>
 </html>
