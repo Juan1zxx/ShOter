@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -325,6 +324,17 @@
     </div>
 </div>
 
+<div id="name-input-menu" class="menu-screen hidden" style="z-index: 105;">
+    <div class="menu-bg-grid" style="animation-direction: alternate-reverse;"></div>
+    <h2 style="font-size: 50px; color: var(--accent); margin-bottom: 20px; z-index: 2;">CODINOME</h2>
+    <div class="glass-panel" style="text-align: center; max-height: max-content;">
+        <p style="color: #aaa; margin-bottom: 20px;">Digite o nome que aparecerá no Ranking Global:</p>
+        <input type="text" id="player-custom-name" style="width: 300px; background:#111; color:#fff; border:3px solid var(--accent); padding:15px; font-family:'Orbitron'; font-size:24px; text-transform:uppercase; text-align:center; border-radius: 8px; margin-bottom: 20px;" maxlength="12" placeholder="SEU NOME">
+        <br>
+        <button class="btn" onclick="confirmAndSaveRank()" style="padding: 10px 30px;">CONFIRMAR E SALVAR</button>
+    </div>
+</div>
+
 <div id="rank-menu" class="menu-screen hidden">
     <div class="menu-bg-grid" style="animation-direction: alternate;"></div>
     <h2 style="font-size: 50px; color: #ffd700; margin-bottom: 20px; z-index: 2;">TOP OPERATIVES</h2>
@@ -396,6 +406,7 @@ const auth = firebase.auth();
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 
 let currentWavesCleared = 0;
+let authenticatedUser = null; // Guardará o usuário temporariamente
 
 function openRankMenu() {
     document.getElementById('main-menu').classList.add('hidden');
@@ -453,28 +464,58 @@ async function submitToRank() {
     btn.disabled = true;
 
     try {
+        // Abre o popup do Google para logar
         const result = await auth.signInWithPopup(googleProvider);
-        const user = result.user;
+        authenticatedUser = result.user; // Salva o usuário globalmente para usar na próxima etapa
         
-        let nickname = user.displayName ? user.displayName.split(' ')[0] : "Operative";
-        let chosenName = prompt("Qual será o seu Codinome no Rank?", nickname);
-        
-        if (!chosenName) chosenName = "Anônimo";
+        // Pega o primeiro nome da conta do Google como sugestão inicial
+        let defaultName = authenticatedUser.displayName ? authenticatedUser.displayName.split(' ')[0] : "OPERATIVE";
+        document.getElementById('player-custom-name').value = defaultName.toUpperCase();
 
+        // Esconde a tela de Game Over e mostra o menu para digitar o nome
+        document.getElementById('game-over').classList.add('hidden');
+        document.getElementById('name-input-menu').classList.remove('hidden');
+        
+        // Reseta o botão caso dê algum problema depois
+        btn.innerText = "SIM, SALVAR";
+        btn.disabled = false;
+        
+    } catch (error) {
+        console.error("Erro de autenticação/salvamento: ", error);
+        alert("Erro ao conectar com o Google. Tente novamente.");
+        btn.innerText = "SIM, SALVAR";
+        btn.disabled = false;
+    }
+}
+
+// NOVA FUNÇÃO: Disparada quando o jogador clica no botão "CONFIRMAR" da tela nova
+async function confirmAndSaveRank() {
+    let inputField = document.getElementById('player-custom-name');
+    let chosenName = inputField.value.trim().toUpperCase();
+
+    // Se a pessoa apagar tudo e tentar salvar vazio, joga "ANÔNIMO"
+    if (chosenName === '') {
+        chosenName = "ANÔNIMO";
+    }
+
+    let btn = document.querySelector("#name-input-menu .btn");
+    btn.innerText = "SALVANDO...";
+    btn.disabled = true;
+
+    try {
         await db.collection('leaderboard').add({
-            uid: user.uid,
-            username: chosenName.toUpperCase(),
+            uid: authenticatedUser.uid,
+            username: chosenName,
             waves: currentWavesCleared,
             date: firebase.firestore.FieldValue.serverTimestamp()
         });
 
         alert("Pontuação salva com sucesso!");
         location.reload(); 
-        
     } catch (error) {
-        console.error("Erro de autenticação/salvamento: ", error);
+        console.error("Erro ao salvar no Firebase: ", error);
         alert("Erro ao salvar pontuação. Tente novamente.");
-        btn.innerText = "SIM, SALVAR";
+        btn.innerText = "CONFIRMAR E SALVAR";
         btn.disabled = false;
     }
 }
@@ -1209,6 +1250,7 @@ window.nextWave = nextWave;
 window.openRankMenu = openRankMenu;
 window.closeRankMenu = closeRankMenu;
 window.submitToRank = submitToRank;
+window.confirmAndSaveRank = confirmAndSaveRank;
 </script>
 </body>
 </html>
