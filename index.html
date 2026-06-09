@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShOter</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <style>
         :root {
             --accent: #00f3ff; --accent-glow: rgba(0, 243, 255, 0.5);
@@ -30,26 +36,26 @@
         #hud-hp { left: 20px; border-color: var(--danger); color: var(--danger); }
         #hud-wave { left: 50%; transform: translateX(-50%); border-color: var(--accent); color: var(--accent); font-size: 24px; }
         
-        #hud-right-group { 
-            position: absolute; top: 20px; right: 20px;
+        #hud-right-group {
+             position: absolute; top: 20px; right: 20px;
             display: flex; align-items: center; gap: 10px;
-            flex-direction: row; 
-        }
+            flex-direction: row;
+         }
         
-        #hud-cash { 
-            border-color: #ffd700; color: #ffd700; 
-            position: relative; top: auto; right: auto;
+        #hud-cash {
+             border-color: #ffd700; color: #ffd700;
+             position: relative; top: auto; right: auto;
         }
 
-        #hud-bomb-indicator { 
-            background: rgba(0,0,0,0.6); border: 2px solid #ff5500;
+        #hud-bomb-indicator {
+             background: rgba(0,0,0,0.6); border: 2px solid #ff5500;
             padding: 10px 20px; border-radius: 15px;
             display: flex; align-items: center; gap: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             font-weight: 700; letter-spacing: 1px;
             color: #ff5500;
-            position: relative; top: auto; right: auto; 
-        }
+            position: relative; top: auto; right: auto;
+         }
         
         /* Menu Styles */
         .menu-screen {
@@ -66,10 +72,10 @@
             transform: perspective(500px) rotateX(60deg);
             animation: gridMove 20s linear infinite; opacity: 0.3;
         }
-        @keyframes gridMove { 
-            from { transform: perspective(500px) rotateX(60deg) translateY(0); } 
-            to { transform: perspective(500px) rotateX(60deg) translateY(50px); } 
-        }
+        @keyframes gridMove {
+             from { transform: perspective(500px) rotateX(60deg) translateY(0); }
+             to { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+         }
         
         h1.title {
             font-size: 100px; font-weight: 900; margin: 0;
@@ -120,21 +126,21 @@
 
         .info-btn {
             position: absolute; top: 10px; right: 10px;
-            background: rgba(0, 243, 255, 0.1); 
-            color: var(--accent);
-            border: 1px solid rgba(0, 243, 255, 0.4); 
-            border-radius: 6px;
-            width: 32px; height: 32px; 
-            cursor: pointer; transition: all 0.3s ease; 
-            display: flex; align-items: center; justify-content: center;
+            background: rgba(0, 243, 255, 0.1);
+             color: var(--accent);
+            border: 1px solid rgba(0, 243, 255, 0.4);
+             border-radius: 6px;
+            width: 32px; height: 32px;
+             cursor: pointer; transition: all 0.3s ease;
+             display: flex; align-items: center; justify-content: center;
             z-index: 5;
         }
-        .info-btn:hover { 
-            background: var(--accent); 
-            color: #000; 
-            border-color: var(--accent);
-            box-shadow: 0 0 15px var(--accent-glow); 
-            transform: translateY(-2px);
+        .info-btn:hover {
+             background: var(--accent);
+             color: #000;
+             border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+             transform: translateY(-2px);
         }
         .info-btn svg { width: 18px; height: 18px; }
         
@@ -161,6 +167,35 @@
         #patch-notes-content p { color: #ccc; line-height: 1.6; }
         #patch-notes-content strong { color: #fff; }
         #patch-notes-content li { color: #ccc; margin-bottom: 8px; line-height: 1.5; }
+
+        /* Rank Styles - Glassmorphism */
+        .glass-panel {
+            background: rgba(16, 20, 35, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 50vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+        .rank-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 20px;
+            color: #ccc;
+            transition: all 0.3s;
+        }
+        .rank-row:hover { background: rgba(0, 243, 255, 0.1); color: #fff; }
+        .rank-row.top-1 { color: #ffd700; font-weight: bold; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+        .rank-row.top-2 { color: #c0c0c0; font-weight: bold; }
+        .rank-row.top-3 { color: #cd7f32; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -200,6 +235,7 @@
     <p style="font-size: 20px; color: #aaa; margin-bottom: 50px; z-index: 2; letter-spacing: 5px;">CYBERNETIC SURVIVAL</p>
     
     <button class="btn" onclick="startGame()" data-txt="deploy">DEPLOY</button>
+    <button class="btn" onclick="openRankMenu()" style="font-size: 18px; padding: 10px 40px; border-color: #ffd700; color: #ffd700;">RANKING GLOBAL</button>
     
     <div style="display: flex; gap: 10px; z-index: 2;">
         <button class="btn" onclick="openSkinsMenu()" style="font-size: 18px; padding: 10px 40px;" data-txt="skins">SKINS</button>
@@ -280,7 +316,24 @@
 <div id="game-over" class="menu-screen hidden">
     <h1 class="title" style="font-size: 80px;" data-txt="terminated">TERMINATED</h1>
     <h2 style="color: #fff; z-index: 2;"><span data-txt="waves_cleared">WAVES CLEARED</span>: <span id="final-wave">0</span></h2>
-    <button class="btn danger" onclick="location.reload()" data-txt="reboot">REBOOT SYSTEM</button>
+    
+    <div id="rank-prompt" class="glass-panel" style="margin: 30px 0; text-align: center; max-height: max-content;">
+        <h3 style="color: var(--accent); margin-top: 0;">SALVAR PONTUAÇÃO NO RANK?</h3>
+        <p style="color: #aaa; margin-bottom: 20px;">Faça login rápido com o Google para imortalizar suas ondas.</p>
+        <button class="btn" onclick="submitToRank()" style="padding: 10px 30px;">SIM, SALVAR</button>
+        <button class="btn danger" onclick="location.reload()" style="padding: 10px 30px;">NÃO, APENAS REINICIAR</button>
+    </div>
+</div>
+
+<div id="rank-menu" class="menu-screen hidden">
+    <div class="menu-bg-grid" style="animation-direction: alternate;"></div>
+    <h2 style="font-size: 50px; color: #ffd700; margin-bottom: 20px; z-index: 2;">TOP OPERATIVES</h2>
+    
+    <div class="glass-panel" id="rank-list">
+        <div style="text-align: center; color: #aaa;">Carregando dados da rede...</div>
+    </div>
+
+    <button class="btn danger" onclick="closeRankMenu()" style="margin-top: 30px;" data-txt="back">BACK</button>
 </div>
 
 <div id="pause-menu" class="menu-screen hidden" style="background: rgba(10, 10, 18, 0.95);">
@@ -327,6 +380,105 @@
 </div>
 
 <script>
+/* ================= FIREBASE CONFIG & LOGIC ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyBAMD-diq3V-CJxcK_BAnX2QFewFwDC6LI",
+  authDomain: "shoter-rank.firebaseapp.com",
+  projectId: "shoter-rank",
+  storageBucket: "shoter-rank.firebasestorage.app",
+  messagingSenderId: "1032062483639",
+  appId: "1:1032062483639:web:341bb9fa92f2d3c863a132"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+let currentWavesCleared = 0;
+
+function openRankMenu() {
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('rank-menu').classList.remove('hidden');
+    loadRanking();
+}
+
+function closeRankMenu() {
+    document.getElementById('rank-menu').classList.add('hidden');
+    document.getElementById('main-menu').classList.remove('hidden');
+}
+
+async function loadRanking() {
+    const rankList = document.getElementById('rank-list');
+    rankList.innerHTML = '<div style="text-align: center; color: var(--accent);">Acessando Mainframe...</div>';
+    
+    try {
+        const snapshot = await db.collection('leaderboard')
+                                 .orderBy('waves', 'desc')
+                                 .limit(15) 
+                                 .get();
+        
+        rankList.innerHTML = ''; 
+        
+        if (snapshot.empty) {
+            rankList.innerHTML = '<div style="text-align: center; color: #888;">Nenhum registro encontrado. Seja o primeiro!</div>';
+            return;
+        }
+
+        let position = 1;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            let rowClass = 'rank-row';
+            if (position === 1) rowClass += ' top-1';
+            if (position === 2) rowClass += ' top-2';
+            if (position === 3) rowClass += ' top-3';
+            
+            rankList.innerHTML += `
+                <div class="${rowClass}">
+                    <span>#${position} ${data.username}</span>
+                    <span>${data.waves} Waves</span>
+                </div>
+            `;
+            position++;
+        });
+    } catch (error) {
+        console.error("Erro ao carregar ranking: ", error);
+        rankList.innerHTML = '<div style="text-align: center; color: var(--danger);">Falha na conexão com a rede.</div>';
+    }
+}
+
+async function submitToRank() {
+    let btn = document.querySelector("#rank-prompt button");
+    btn.innerText = "AUTENTICANDO...";
+    btn.disabled = true;
+
+    try {
+        const result = await auth.signInWithPopup(googleProvider);
+        const user = result.user;
+        
+        let nickname = user.displayName ? user.displayName.split(' ')[0] : "Operative";
+        let chosenName = prompt("Qual será o seu Codinome no Rank?", nickname);
+        
+        if (!chosenName) chosenName = "Anônimo";
+
+        await db.collection('leaderboard').add({
+            uid: user.uid,
+            username: chosenName.toUpperCase(),
+            waves: currentWavesCleared,
+            date: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert("Pontuação salva com sucesso!");
+        location.reload(); 
+        
+    } catch (error) {
+        console.error("Erro de autenticação/salvamento: ", error);
+        alert("Erro ao salvar pontuação. Tente novamente.");
+        btn.innerText = "SIM, SALVAR";
+        btn.disabled = false;
+    }
+}
+
 /* ================= GLOBAL CONFIG & SETTINGS ================= */
 const GAME_CONFIG = {
     boss: { baseHp: 6500, hpPerWave: 800, baseDmg: 60, dmgPerWave: 5, baseSpd: 1.2, spdPerWave: 0.05, summonInterval: 3000, summonDecrease: 60 },
@@ -350,20 +502,17 @@ const GAME = { state: 'menu', wave: 0, cash: 0, cashMultiplier: 1, spawnTimer: 0
 const KEYS = {}, MOUSE = {x:W/2, y:H/2, down:false};
 const PLAYER = { x:W/2, y:H/2, r:15, hp:100, maxHp:100, speed:5, wIndex:0, sIndex:0, lastShot:0, angle:0, hitCD: 0, regen: 0, critChance: 0, hasBomb: false };
 
-let pendingBonusCash = 0; 
-let codeMenuSource = 'settings'; 
-
+let pendingBonusCash = 0; let codeMenuSource = 'settings'; 
 let SAVE_DATA = { highScore: 0, sIndex: 0, usedCodes: [] };
 let SETTINGS = { audio: true, lang: 'en', dmgText: true };
 
 try {
     let savedSettings = localStorage.getItem('shoter_settings');
     if(savedSettings) SETTINGS = JSON.parse(savedSettings);
-    
     let savedData = localStorage.getItem('shoter_save');
     if(savedData) {
         SAVE_DATA = JSON.parse(savedData);
-        if(!SAVE_DATA.usedCodes) SAVE_DATA.usedCodes = []; 
+        if(!SAVE_DATA.usedCodes) SAVE_DATA.usedCodes = [];
     }
 } catch(e) { console.warn("Storage access restricted."); }
 
@@ -404,8 +553,8 @@ function updateMenuData() {
     if(el2) el2.innerText = SAVE_DATA.highScore;
 }
 
-function saveSettings() { 
-    try { localStorage.setItem('shoter_settings', JSON.stringify(SETTINGS)); } catch(e) {}
+function saveSettings() {
+     try { localStorage.setItem('shoter_settings', JSON.stringify(SETTINGS)); } catch(e) {}
     applySettings(); 
 }
 
@@ -425,9 +574,9 @@ function toggleAudio() { SETTINGS.audio = !SETTINGS.audio; saveSettings(); }
 function toggleDmgText() { SETTINGS.dmgText = !SETTINGS.dmgText; saveSettings(); }
 function toggleLang() { SETTINGS.lang = SETTINGS.lang === 'en' ? 'pt' : 'en'; saveSettings(); }
 
-function openSettings() { 
-    document.getElementById('main-menu').classList.add('hidden'); 
-    document.getElementById('settings-menu').classList.remove('hidden');
+function openSettings() {
+     document.getElementById('main-menu').classList.add('hidden');
+     document.getElementById('settings-menu').classList.remove('hidden');
 }
 function closeSettings() { document.getElementById('settings-menu').classList.add('hidden'); document.getElementById('main-menu').classList.remove('hidden'); }
 function openPatchNotes() { document.getElementById('main-menu').classList.add('hidden'); document.getElementById('patch-notes-menu').classList.remove('hidden'); }
@@ -515,20 +664,20 @@ function redeemCode() {
         SAVE_DATA.usedCodes.push(code);
         try { localStorage.setItem('shoter_save', JSON.stringify(SAVE_DATA)); } catch(e){}
         
-        if (GAME.state === 'playing' || GAME.state === 'paused') { 
-            GAME.cash += reward; updateHUD(); 
-        } else { 
-            pendingBonusCash += reward; 
-        }
+        if (GAME.state === 'playing' || GAME.state === 'paused') {
+             GAME.cash += reward; updateHUD();
+         } else {
+             pendingBonusCash += reward;
+         }
         
-        msg.style.color = 'var(--accent)'; 
-        msg.innerText = lang('code_success_cash').replace('{VAL}', reward); 
-        input.value = ''; 
-        sfx(600, 'sine', 0.5); 
-    } else {
-        msg.style.color = 'var(--danger)'; 
-        msg.innerText = lang('code_invalid'); 
-        sfx(150, 'sawtooth', 0.3);
+         msg.style.color = 'var(--accent)';
+         msg.innerText = lang('code_success_cash').replace('{VAL}', reward);
+         input.value = '';
+         sfx(600, 'sine', 0.5);
+     } else {
+        msg.style.color = 'var(--danger)';
+         msg.innerText = lang('code_invalid');
+         sfx(150, 'sawtooth', 0.3);
     }
 }
 
@@ -597,8 +746,7 @@ window.onkeydown = e => {
 };
 window.onkeyup = e => KEYS[e.code] = false;
 window.onmousemove = e => { MOUSE.x = e.clientX; MOUSE.y = e.clientY; };
-window.onmousedown = () => MOUSE.down = true; 
-window.onmouseup = () => MOUSE.down = false;
+window.onmousedown = () => MOUSE.down = true; window.onmouseup = () => MOUSE.down = false;
 
 /* ================= LOGIC ================= */
 function updateNukePrice() {
@@ -613,24 +761,24 @@ function updateNukePrice() {
 
 function startGame() {
     GAME.state='playing'; GAME.wave=0; GAME.cashMultiplier=1;
-    GAME.cash = 0 + pendingBonusCash; pendingBonusCash = 0; 
-    GAME.bombBoughtThisWave = false; GAME.flash = 0;
+    GAME.cash = 0 + pendingBonusCash; pendingBonusCash = 0;
+     GAME.bombBoughtThisWave = false; GAME.flash = 0;
     
     PLAYER.sIndex = SAVE_DATA.sIndex;
     PLAYER.hp=100; PLAYER.maxHp=100; PLAYER.speed=5; PLAYER.x=W/2; PLAYER.y=H/2; PLAYER.wIndex=0; PLAYER.hitCD=0;
     PLAYER.regen=0; PLAYER.critChance=0; PLAYER.hasBomb=false;
     
     WEAPONS.forEach((w,i) => { w.unlocked = (i===0); });
-    UPGRADES.forEach(u => { u.unlocked=false; if(u.regen) u.unlocked=false; }); 
-    entities = { enemies:[], bullets:[], particles:[], texts:[], damageTexts:[], mines:[] };
+    UPGRADES.forEach(u => { u.unlocked=false; if(u.regen) u.unlocked=false; });
+     entities = { enemies:[], bullets:[], particles:[], texts:[], damageTexts:[], mines:[] };
     
     document.querySelectorAll('.menu-screen').forEach(el=>el.classList.add('hidden'));
     nextWave(); loop();
 }
 
 function nextWave() {
-    GAME.wave++; GAME.bombBoughtThisWave = false; updateNukePrice(); 
-    if (isBossWave(GAME.wave)) {
+    GAME.wave++; GAME.bombBoughtThisWave = false; updateNukePrice();
+     if (isBossWave(GAME.wave)) {
         GAME.toSpawn = 15 + Math.floor(GAME.wave * 1.5); spawnBoss(); GAME.active = 1;
         spawnText("CHAOS BOSS DETECTED", W/2, H/2, 60, '#ff0000');
     } else {
@@ -641,20 +789,20 @@ function nextWave() {
 }
 
 function activateBomb() {
-    PLAYER.hasBomb = false; GAME.flash = 1.0; sfx(50, 'square', 1.5, 0.8, -40); 
-    entities.mines = []; 
-    for (let i = entities.enemies.length - 1; i >= 0; i--) {
+    PLAYER.hasBomb = false; GAME.flash = 1.0; sfx(50, 'square', 1.5, 0.8, -40);
+     entities.mines = [];
+     for (let i = entities.enemies.length - 1; i >= 0; i--) {
         let e = entities.enemies[i];
         if (e.type === 'exploder') handleExplosion(e.x, e.y, e.explosionRadius, e.explosionDamage);
-        spawnParticles(e.x, e.y, 40, e.color, 8); spawnFloatingDmg(e.x, e.y - 20, 9999, true); 
-        GAME.cash += Math.floor(e.val * GAME.cashMultiplier); GAME.active--; entities.enemies.splice(i, 1);
+        spawnParticles(e.x, e.y, 40, e.color, 8); spawnFloatingDmg(e.x, e.y - 20, 9999, true);
+         GAME.cash += Math.floor(e.val * GAME.cashMultiplier); GAME.active--; entities.enemies.splice(i, 1);
     }
     updateHUD();
 }
 
 function togglePause() {
-    if (GAME.state === 'playing') { GAME.state = 'paused'; document.getElementById('pause-menu').classList.remove('hidden'); sfx(200, 'sine', 0.1, 0.2); } 
-    else if (GAME.state === 'paused') { GAME.state = 'playing'; document.getElementById('pause-menu').classList.add('hidden'); sfx(300, 'sine', 0.1, 0.2); }
+    if (GAME.state === 'playing') { GAME.state = 'paused'; document.getElementById('pause-menu').classList.remove('hidden'); sfx(200, 'sine', 0.1, 0.2); }
+     else if (GAME.state === 'paused') { GAME.state = 'playing'; document.getElementById('pause-menu').classList.add('hidden'); sfx(300, 'sine', 0.1, 0.2); }
 }
 
 function loop() {
@@ -695,8 +843,8 @@ function update() {
         m.life++;
         if (m.life > 90) {
             if (dist(PLAYER, m) < PLAYER.r + m.r) {
-                handleExplosion(m.x, m.y, 100, 9999); 
-                entities.mines.splice(i, 1);
+                handleExplosion(m.x, m.y, 100, 9999);
+                 entities.mines.splice(i, 1);
             }
         }
     }
@@ -712,8 +860,8 @@ function update() {
         
         if (e.type === 'trapezoid') {
             let dToPlayer = dist(PLAYER, e);
-            if (dToPlayer < GAME_CONFIG.trapezoid.range) { e.x -= Math.cos(ang) * e.spd; e.y -= Math.sin(ang) * e.spd; } 
-            else if (dToPlayer > GAME_CONFIG.trapezoid.range + 50) { e.x += Math.cos(ang) * e.spd; e.y += Math.sin(ang) * e.spd; }
+            if (dToPlayer < GAME_CONFIG.trapezoid.range) { e.x -= Math.cos(ang) * e.spd; e.y -= Math.sin(ang) * e.spd; }
+             else if (dToPlayer > GAME_CONFIG.trapezoid.range + 50) { e.x += Math.cos(ang) * e.spd; e.y += Math.sin(ang) * e.spd; }
             e.x += Math.cos(ang + Math.PI/2) * (e.spd * 0.5); e.y += Math.sin(ang + Math.PI/2) * (e.spd * 0.5); e.angle = ang;
             if (Date.now() - e.lastShot > e.fireRate) {
                 e.lastShot = Date.now();
@@ -725,18 +873,18 @@ function update() {
             if (Date.now() - e.lastMine > e.mineInterval) {
                 e.lastMine = Date.now();
                 entities.mines.push({ x: e.x, y: e.y, r: 10, color: '#ff0055', life: 0 });
-                sfx(900, 'square', 0.1, 0.1); 
-            }
+                sfx(900, 'square', 0.1, 0.1);
+             }
         } else if (e.type === 'boss') {
             e.x += Math.cos(ang) * e.spd; e.y += Math.sin(ang) * e.spd; e.angle = ang;
             let summonRate = GAME_CONFIG.boss.summonInterval - (GAME.wave * GAME_CONFIG.boss.summonDecrease);
-            summonRate = Math.max(800, summonRate); 
-            if (e.hp < e.maxHp * 0.5) summonRate *= 0.7;
+            summonRate = Math.max(800, summonRate);
+             if (e.hp < e.maxHp * 0.5) summonRate *= 0.7;
             if (e.hp < e.maxHp * 0.25) summonRate *= 0.7;
             if (Date.now() - e.lastSummon > summonRate) { e.lastSummon = Date.now(); spawnMinionAround(e.x, e.y); sfx(100, 'sawtooth', 0.5, 0.5); spawnText("REINFORCEMENTS", e.x, e.y - 80, 20, '#ff0000'); }
-        } else { 
-            e.x += Math.cos(ang)*e.spd; e.y += Math.sin(ang)*e.spd; e.angle=ang; 
-        }
+        } else {
+             e.x += Math.cos(ang)*e.spd; e.y += Math.sin(ang)*e.spd; e.angle=ang;
+         }
         
         let currentDist = dist(PLAYER, e);
         if(currentDist < PLAYER.r+e.r) {
@@ -781,8 +929,8 @@ function handleExplosion(x, y, radius, damage) {
 
 function spawnBoss() {
     let hp = GAME_CONFIG.boss.baseHp + (GAME.wave * GAME_CONFIG.boss.hpPerWave); let dmg = GAME_CONFIG.boss.baseDmg + (GAME.wave * GAME_CONFIG.boss.dmgPerWave);
-    let spd = GAME_CONFIG.boss.baseSpd + (GAME.wave * GAME_CONFIG.boss.spdPerWave); spd = Math.min(spd, 3.5); 
-    let e = { x: W / 2, y: -100, r: 90, hp: hp, maxHp: hp, spd: spd, dmg: dmg, val: 1000 + (GAME.wave * 50), color: '#ff0000', type: 'boss', angle: Math.PI / 2, lastSummon: 0 };
+    let spd = GAME_CONFIG.boss.baseSpd + (GAME.wave * GAME_CONFIG.boss.spdPerWave); spd = Math.min(spd, 3.5);
+     let e = { x: W / 2, y: -100, r: 90, hp: hp, maxHp: hp, spd: spd, dmg: dmg, val: 1000 + (GAME.wave * 50), color: '#ff0000', type: 'boss', angle: Math.PI / 2, lastSummon: 0 };
     entities.enemies.push(e);
 }
 
@@ -793,21 +941,21 @@ function spawnMinionAround(bx, by) {
         let x = bx + Math.cos(angle) * dist; let y = by + Math.sin(angle) * dist; let rand = Math.random();
         let e = {x, y, r:18, hp:40+GAME.wave*8, maxHp:40+GAME.wave*8, spd:2+Math.random(), dmg:10, val:15, color:'#933', type:'normal'};
         
-        if (GAME.wave >= GAME_CONFIG.trapezoid.waveStart && rand < 0.15) { 
-            e.type = 'trapezoid'; e.color = '#0088ff'; e.r = 22; e.hp *= GAME_CONFIG.trapezoid.hpMult; e.maxHp *= GAME_CONFIG.trapezoid.hpMult; e.spd *= 0.8; e.val = 80; e.lastShot = 0; e.fireRate = GAME_CONFIG.trapezoid.fireRate; 
-        } 
-        else if (GAME.wave >= 35 && rand < 0.30) {
+        if (GAME.wave >= GAME_CONFIG.trapezoid.waveStart && rand < 0.15) {
+             e.type = 'trapezoid'; e.color = '#0088ff'; e.r = 22; e.hp *= GAME_CONFIG.trapezoid.hpMult; e.maxHp *= GAME_CONFIG.trapezoid.hpMult; e.spd *= 0.8; e.val = 80; e.lastShot = 0; e.fireRate = GAME_CONFIG.trapezoid.fireRate;
+         }
+         else if (GAME.wave >= 35 && rand < 0.30) {
             e.type = 'miner'; e.color = '#ff00ff'; e.r = 16; e.hp *= 0.5; e.maxHp *= 0.5; e.spd *= 1.8; e.val = 60; e.lastMine = Date.now(); e.mineInterval = Math.max(600, 2500 - (GAME.wave - 35) * 80);
         }
-        else if (GAME.wave >= 17 && rand < 0.45) { 
-            e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100; 
-        } 
-        else if (GAME.wave >= 10 && rand < 0.65) { 
-            e.type = 'juggernaut'; e.color = '#527'; e.r = 28; e.hp *= 3.5; e.maxHp *= 3.5; e.spd *= 0.6; e.val = 50; 
-        } 
-        else if (GAME.wave >= 4 && rand < 0.85) { 
-            e.type = 'dasher'; e.color = '#c92'; e.r = 14; e.hp *= 0.6; e.maxHp *= 0.6; e.spd *= 1.8; e.val = 20; e.dmg = 3.4; 
-        }
+        else if (GAME.wave >= 17 && rand < 0.45) {
+             e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100;
+         }
+         else if (GAME.wave >= 10 && rand < 0.65) {
+             e.type = 'juggernaut'; e.color = '#527'; e.r = 28; e.hp *= 3.5; e.maxHp *= 3.5; e.spd *= 0.6; e.val = 50;
+         }
+         else if (GAME.wave >= 4 && rand < 0.85) {
+             e.type = 'dasher'; e.color = '#c92'; e.r = 14; e.hp *= 0.6; e.maxHp *= 0.6; e.spd *= 1.8; e.val = 20; e.dmg = 3.4;
+         }
         entities.enemies.push(e); GAME.active++;
     }
 }
@@ -817,21 +965,21 @@ function spawnEnemy() {
     if(side===0){x=Math.random()*W;y=-30} else if(side===1){x=W+30;y=Math.random()*H} else if(side===2){x=Math.random()*W;y=H+30} else{x=-30;y=Math.random()*H}
     let e = {x, y, r:18, hp:40+GAME.wave*8, maxHp:40+GAME.wave*8, spd:2+Math.random(), dmg:10, val:15, color:'#933', type:'normal'};
     
-    if (GAME.wave >= GAME_CONFIG.trapezoid.waveStart && rand < 0.15) { 
-        e.type = 'trapezoid'; e.color = '#0088ff'; e.r = 22; e.hp *= GAME_CONFIG.trapezoid.hpMult; e.maxHp *= GAME_CONFIG.trapezoid.hpMult; e.spd *= 0.8; e.val = 80; e.lastShot = 0; e.fireRate = GAME_CONFIG.trapezoid.fireRate; 
-    } 
-    else if (GAME.wave >= 35 && rand < 0.30) {
+    if (GAME.wave >= GAME_CONFIG.trapezoid.waveStart && rand < 0.15) {
+         e.type = 'trapezoid'; e.color = '#0088ff'; e.r = 22; e.hp *= GAME_CONFIG.trapezoid.hpMult; e.maxHp *= GAME_CONFIG.trapezoid.hpMult; e.spd *= 0.8; e.val = 80; e.lastShot = 0; e.fireRate = GAME_CONFIG.trapezoid.fireRate;
+     }
+     else if (GAME.wave >= 35 && rand < 0.30) {
         e.type = 'miner'; e.color = '#ff00ff'; e.r = 16; e.hp *= 0.5; e.maxHp *= 0.5; e.spd *= 1.8; e.val = 60; e.lastMine = Date.now(); e.mineInterval = Math.max(600, 2500 - (GAME.wave - 35) * 80);
     }
-    else if (GAME.wave >= 17 && rand < 0.45) { 
-        e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100; 
-    } 
-    else if (GAME.wave >= 10 && rand < 0.65) { 
-        e.type = 'juggernaut'; e.color = '#527'; e.r = 28; e.hp *= 3.5; e.maxHp *= 3.5; e.spd *= 0.6; e.val = 50; 
-    } 
-    else if (GAME.wave >= 4 && rand < 0.85) { 
-        e.type = 'dasher'; e.color = '#c92'; e.r = 14; e.hp *= 0.6; e.maxHp *= 0.6; e.spd *= 1.8; e.val = 20; e.dmg = 3.4; 
-    }
+    else if (GAME.wave >= 17 && rand < 0.45) {
+         e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100;
+     }
+     else if (GAME.wave >= 10 && rand < 0.65) {
+         e.type = 'juggernaut'; e.color = '#527'; e.r = 28; e.hp *= 3.5; e.maxHp *= 3.5; e.spd *= 0.6; e.val = 50;
+     }
+     else if (GAME.wave >= 4 && rand < 0.85) {
+         e.type = 'dasher'; e.color = '#c92'; e.r = 14; e.hp *= 0.6; e.maxHp *= 0.6; e.spd *= 1.8; e.val = 20; e.dmg = 3.4;
+     }
     entities.enemies.push(e);
 }
 
@@ -839,8 +987,8 @@ function spawnParticles(x,y,n,c,s=5) { for(let i=0;i<n;i++) entities.particles.p
 function spawnText(t,x,y,s,c) { entities.texts.push({text:t,x,y,size:s,color:c,life:2}); }
 
 function spawnFloatingDmg(x, y, amount, isCrit = false, isPlayerDmg = false) {
-    if (!SETTINGS.dmgText) return; 
-    let color = isPlayerDmg ? '#ff0000' : (isCrit ? '#ffff00' : '#ff0055'); let scale = isCrit ? 0.8 : 0.5; let txt = Math.floor(amount) + (isCrit ? '!' : '');
+    if (!SETTINGS.dmgText) return;
+     let color = isPlayerDmg ? '#ff0000' : (isCrit ? '#ffff00' : '#ff0055'); let scale = isCrit ? 0.8 : 0.5; let txt = Math.floor(amount) + (isCrit ? '!' : '');
     entities.damageTexts.push({ text: txt, x: x, y: y, vy: -1.5, life: 1.0, scale: scale, color: color });
 }
 
@@ -876,16 +1024,14 @@ function draw() {
 
     entities.enemies.forEach(e => {
         ctx.fillStyle=e.color; ctx.strokeStyle='#ddd'; ctx.lineWidth=2; ctx.beginPath();
-        if (e.type === 'juggernaut') { for(let i=0; i<6; i++) { let a=e.angle+i*Math.PI/3; ctx[i?'lineTo':'moveTo'](e.x+Math.cos(a)*e.r, e.y+Math.sin(a)*e.r); } ctx.closePath(); } 
-        else if (e.type === 'dasher') { ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.angle); ctx.moveTo(e.r, 0); ctx.lineTo(-e.r/2, -e.r*0.8); ctx.lineTo(-e.r/2, e.r*0.8); ctx.closePath(); ctx.restore(); } 
-        else if (e.type === 'trapezoid') { ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.angle); ctx.moveTo(e.r, -e.r/2); ctx.lineTo(e.r, e.r/2); ctx.lineTo(-e.r, e.r); ctx.lineTo(-e.r, -e.r); ctx.closePath(); ctx.restore(); } 
-        else if (e.type === 'miner') { ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.angle); ctx.moveTo(-e.r, -e.r); ctx.lineTo(e.r, -e.r); ctx.lineTo(e.r, e.r); ctx.lineTo(-e.r, e.r); ctx.closePath(); ctx.restore(); }
+        if (e.type === 'juggernaut') { for(let i=0; i<6; i++) { let a=e.angle+i*Math.PI/3; ctx[i?'lineTo':'moveTo'](e.x+Math.cos(a)*e.r, e.y+Math.sin(a)*e.r); } ctx.closePath(); }
+         else if (e.type === 'dasher') { ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.angle); ctx.moveTo(e.r, 0); ctx.lineTo(-e.r/2, -e.r*0.8); ctx.lineTo(-e.r/2, e.r*0.8); ctx.closePath(); ctx.restore(); }
+         else if (e.type === 'trapezoid') { ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.angle); ctx.moveTo(e.r, -e.r/2); ctx.lineTo(e.r, e.r/2); ctx.lineTo(-e.r, e.r); ctx.lineTo(-e.r, -e.r); ctx.closePath(); ctx.restore(); }
+         else if (e.type === 'miner') { ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.angle); ctx.moveTo(-e.r, -e.r); ctx.lineTo(e.r, -e.r); ctx.lineTo(e.r, e.r); ctx.lineTo(-e.r, e.r); ctx.closePath(); ctx.restore(); }
         else { ctx.arc(e.x, e.y, e.r, 0, Math.PI*2); ctx.closePath(); }
         
         ctx.fill(); ctx.stroke();
-        
         if (e.type === 'exploder') { ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; ctx.beginPath(); let pulse = e.r * 0.4 * (1 + Math.sin(Date.now() * 0.01)); ctx.arc(e.x, e.y, pulse, 0, Math.PI * 2); ctx.fill(); }
-        
         ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fillRect(e.x-e.r, e.y-e.r-12, e.r*2, 4);
         ctx.fillStyle='#f55'; ctx.fillRect(e.x-e.r, e.y-e.r-12, (e.r*2)*(e.hp/e.maxHp), 4);
     });
@@ -914,19 +1060,19 @@ function updateHUD() {
         bombEl.classList.remove('hidden');
         let textEl = document.getElementById('bomb-text');
         
-        if (isBossWave(GAME.wave)) { 
-            bombEl.style.color = '#777'; 
-            bombEl.style.borderColor = '#777'; 
-            textEl.innerText = lang('bomb_jammed'); 
-        } 
-        else { 
-            bombEl.style.color = '#ff5500'; 
-            bombEl.style.borderColor = '#ff5500'; 
-            textEl.innerText = lang('bomb_hud'); 
-        }
-    } else { 
-        bombEl.classList.add('hidden'); 
-    }
+        if (isBossWave(GAME.wave)) {
+             bombEl.style.color = '#777';
+             bombEl.style.borderColor = '#777';
+             textEl.innerText = lang('bomb_jammed');
+         }
+         else {
+             bombEl.style.color = '#ff5500';
+             bombEl.style.borderColor = '#ff5500';
+             textEl.innerText = lang('bomb_hud');
+         }
+    } else {
+         bombEl.classList.add('hidden');
+     }
 }
 
 function switchTab(t) { GAME.shopTab=t; openShop(t); }
@@ -934,7 +1080,6 @@ function switchTab(t) { GAME.shopTab=t; openShop(t); }
 function openShop(tab='w') {
     document.getElementById('shop-menu').classList.remove('hidden'); document.getElementById('shop-cash').innerText = GAME.cash;
     
-    // Atualiza botões da tab
     document.querySelectorAll('#shop-tabs .tab-btn').forEach(b => {
         let dt = b.getAttribute('data-txt');
         b.classList.remove('active');
@@ -946,18 +1091,17 @@ function openShop(tab='w') {
     const g = document.getElementById('shop-grid'); g.innerHTML='';
     
     if(tab==='w') {
-        WEAPONS.forEach((w,i)=>{ 
-            if(i===0)return; 
-            let desc = (SETTINGS.lang === 'pt' && w.descPt) ? w.descPt : (w.desc || `DMG: ${w.dmg}`);
-            if (w.isConsumable) { let limitReached = GAME.bombBoughtThisWave || PLAYER.hasBomb; let priceText = limitReached ? 'SOLD OUT' : '$'+w.price; addItem(g, w.name, desc, priceText, limitReached, i, 'w'); } 
-            else { addItem(g, w.name, desc, w.unlocked?lang('owned'):'$'+w.price, w.unlocked, i, 'w'); }
+        WEAPONS.forEach((w,i)=>{
+             if(i===0)return;
+             let desc = (SETTINGS.lang === 'pt' && w.descPt) ? w.descPt : (w.desc || `DMG: ${w.dmg}`);
+            if (w.isConsumable) { let limitReached = GAME.bombBoughtThisWave || PLAYER.hasBomb; let priceText = limitReached ? 'SOLD OUT' : '$'+w.price; addItem(g, w.name, desc, priceText, limitReached, i, 'w'); }
+             else { addItem(g, w.name, desc, w.unlocked?lang('owned'):'$'+w.price, w.unlocked, i, 'w'); }
         });
     } else if(tab==='u') {
-        UPGRADES.forEach((u,i)=>{ 
-            const isOwned = u.unlocked || false; const priceText = isOwned ? lang('purchased') : '$'+u.price; addItem(g, u.name, u.desc, priceText, isOwned, i, 'u'); 
-        });
+        UPGRADES.forEach((u,i)=>{
+             const isOwned = u.unlocked || false; const priceText = isOwned ? lang('purchased') : '$'+u.price; addItem(g, u.name, u.desc, priceText, isOwned, i, 'u');
+         });
     } else if(tab==='s') {
-        // Aba de Skins in-game
         SKINS.forEach((s, i) => {
             let unlocked = SAVE_DATA.highScore >= s.reqWave;
             let isEquipped = PLAYER.sIndex === i;
@@ -974,7 +1118,7 @@ function openShop(tab='w') {
             btn.onclick = () => {
                 if(unlocked) {
                     SAVE_DATA.sIndex = i;
-                    PLAYER.sIndex = i; // Aplica instantaneamente
+                    PLAYER.sIndex = i;
                     try { localStorage.setItem('shoter_save', JSON.stringify(SAVE_DATA)); } catch(e){}
                     sfx(600,'sine',0.3); openShop('s');
                 }
@@ -1018,10 +1162,13 @@ function addItem(grid, name, desc, priceTxt, owned, idx, type) {
 }
 
 function gameOver() {
-    GAME.state = 'gameover'; document.getElementById('game-over').classList.remove('hidden');
+    GAME.state = 'gameover'; 
+    document.getElementById('game-over').classList.remove('hidden');
     let wavesCleared = GAME.wave - 1;
     document.getElementById('final-wave').innerText = wavesCleared;
     
+    currentWavesCleared = wavesCleared;
+        
     if (wavesCleared > SAVE_DATA.highScore) {
         SAVE_DATA.highScore = wavesCleared;
         try { localStorage.setItem('shoter_save', JSON.stringify(SAVE_DATA)); } catch(e){}
@@ -1059,6 +1206,9 @@ window.toggleLang = toggleLang;
 window.togglePause = togglePause;
 window.switchTab = switchTab;
 window.nextWave = nextWave;
+window.openRankMenu = openRankMenu;
+window.closeRankMenu = closeRankMenu;
+window.submitToRank = submitToRank;
 </script>
 </body>
 </html>
