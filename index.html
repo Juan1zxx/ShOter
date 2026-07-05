@@ -407,7 +407,7 @@ const auth = firebase.auth();
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 
 let currentWavesCleared = 0;
-let authenticatedUser = null; // Guardará o usuário temporariamente
+let authenticatedUser = null; 
 
 function openRankMenu() {
     document.getElementById('main-menu').classList.add('hidden');
@@ -465,19 +465,15 @@ async function submitToRank() {
     btn.disabled = true;
 
     try {
-        // Abre o popup do Google para logar
         const result = await auth.signInWithPopup(googleProvider);
-        authenticatedUser = result.user; // Salva o usuário globalmente para usar na próxima etapa
+        authenticatedUser = result.user; 
         
-        // Pega o primeiro nome da conta do Google como sugestão inicial
         let defaultName = authenticatedUser.displayName ? authenticatedUser.displayName.split(' ')[0] : "OPERATIVE";
         document.getElementById('player-custom-name').value = defaultName.toUpperCase();
 
-        // Esconde a tela de Game Over e mostra o menu para digitar o nome
         document.getElementById('game-over').classList.add('hidden');
         document.getElementById('name-input-menu').classList.remove('hidden');
         
-        // Reseta o botão caso dê algum problema depois
         btn.innerText = "SIM, SALVAR";
         btn.disabled = false;
         
@@ -489,12 +485,11 @@ async function submitToRank() {
     }
 }
 
-// NOVA FUNÇÃO: Disparada quando o jogador clica no botão "CONFIRMAR" da tela nova
+// NOVA FUNÇÃO: Disparada quando o jogador clica no botão "CONFIRMAR" da tela nova com verificação de Recorde
 async function confirmAndSaveRank() {
     let inputField = document.getElementById('player-custom-name');
     let chosenName = inputField.value.trim().toUpperCase();
 
-    // Se a pessoa apagar tudo e tentar salvar vazio, joga "ANÔNIMO"
     if (chosenName === '') {
         chosenName = "ANÔNIMO";
     }
@@ -504,14 +499,34 @@ async function confirmAndSaveRank() {
     btn.disabled = true;
 
     try {
-        await db.collection('leaderboard').add({
-            uid: authenticatedUser.uid,
-            username: chosenName,
-            waves: currentWavesCleared,
-            date: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        const playerDocRef = db.collection('leaderboard').doc(authenticatedUser.uid);
+        const doc = await playerDocRef.get();
 
-        alert("Pontuação salva com sucesso!");
+        if (doc.exists) {
+            const dadosAtuais = doc.data();
+            if (currentWavesCleared > dadosAtuais.waves) {
+                await playerDocRef.update({
+                    username: chosenName,
+                    waves: currentWavesCleared,
+                    date: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert("Novo recorde pessoal salvo no Ranking!");
+            } else {
+                await playerDocRef.update({
+                    username: chosenName
+                });
+                alert(`Sua pontuação de ${currentWavesCleared} ondas não superou seu recorde atual de ${dadosAtuais.waves} ondas. Seu recorde foi mantido!`);
+            }
+        } else {
+            await playerDocRef.set({
+                uid: authenticatedUser.uid,
+                username: chosenName,
+                waves: currentWavesCleared,
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert("Sua primeira pontuação foi salva com sucesso!");
+        }
+
         location.reload(); 
     } catch (error) {
         console.error("Erro ao salvar no Firebase: ", error);
@@ -540,7 +555,7 @@ const LANG = {
 };
 
 /* ================= GAME STATE, SAVES & VARIABLES ================= */
-const GAME = { state: 'menu', wave: 0, cash: 0, cashMultiplier: 1, spawnTimer: 0, toSpawn: 0, active: 0, shopTab: 'w', bombBoughtThisWave: false, flash: 0 };
+const GAME = { state: 'menu', wave: 0, cash: 0, cashMultiplier: 1, spawnTimer: 0, toSpawn: 0, active: 0, shopTab: 'w', bombBoughtThisWave: false, flash: 0, minersSpawnedThisWave: 0 };
 const KEYS = {}, MOUSE = {x:W/2, y:H/2, down:false};
 const PLAYER = { x:W/2, y:H/2, r:15, hp:100, maxHp:100, speed:5, wIndex:0, sIndex:0, lastShot:0, angle:0, hitCD: 0, regen: 0, critChance: 0, hasBomb: false };
 
@@ -802,10 +817,9 @@ function updateNukePrice() {
 }
 
 function startGame() {
-    // ...
-GAME.state='playing'; GAME.wave=0; GAME.cashMultiplier=1;
-GAME.cash = 0 + pendingBonusCash; pendingBonusCash = 0; 
-GAME.bombBoughtThisWave = false; GAME.flash = 0; GAME.minersSpawnedThisWave = 0;
+    GAME.state='playing'; GAME.wave=0; GAME.cashMultiplier=1;
+    GAME.cash = 0 + pendingBonusCash; pendingBonusCash = 0; 
+    GAME.bombBoughtThisWave = false; GAME.flash = 0; GAME.minersSpawnedThisWave = 0;
     
     PLAYER.sIndex = SAVE_DATA.sIndex;
     PLAYER.hp=100; PLAYER.maxHp=100; PLAYER.speed=5; PLAYER.x=W/2; PLAYER.y=H/2; PLAYER.wIndex=0; PLAYER.hitCD=0;
@@ -813,15 +827,15 @@ GAME.bombBoughtThisWave = false; GAME.flash = 0; GAME.minersSpawnedThisWave = 0;
     
     WEAPONS.forEach((w,i) => { w.unlocked = (i===0); });
     UPGRADES.forEach(u => { u.unlocked=false; if(u.regen) u.unlocked=false; });
-     entities = { enemies:[], bullets:[], particles:[], texts:[], damageTexts:[], mines:[] };
+    entities = { enemies:[], bullets:[], particles:[], texts:[], damageTexts:[], mines:[] };
     
     document.querySelectorAll('.menu-screen').forEach(el=>el.classList.add('hidden'));
     nextWave(); loop();
 }
 
 function nextWave() {
-    GAME.wave++; GAME.bombBoughtThisWave = false; updateNukePrice(); 
-    GAME.minersSpawnedThisWave = 0; 
+    GAME.wave++; GAME.bombBoughtThisWave = false; updateNukePrice();
+    GAME.minersSpawnedThisWave = 0;
     
     if (isBossWave(GAME.wave)) {
         GAME.toSpawn = 15 + Math.floor(GAME.wave * 1.5); spawnBoss(); GAME.active = 1;
@@ -835,12 +849,12 @@ function nextWave() {
 
 function activateBomb() {
     PLAYER.hasBomb = false; GAME.flash = 1.0; sfx(50, 'square', 1.5, 0.8, -40);
-     entities.mines = [];
-     for (let i = entities.enemies.length - 1; i >= 0; i--) {
+    entities.mines = [];
+    for (let i = entities.enemies.length - 1; i >= 0; i--) {
         let e = entities.enemies[i];
         if (e.type === 'exploder') handleExplosion(e.x, e.y, e.explosionRadius, e.explosionDamage);
         spawnParticles(e.x, e.y, 40, e.color, 8); spawnFloatingDmg(e.x, e.y - 20, 9999, true);
-         GAME.cash += Math.floor(e.val * GAME.cashMultiplier); GAME.active--; entities.enemies.splice(i, 1);
+        GAME.cash += Math.floor(e.val * GAME.cashMultiplier); GAME.active--; entities.enemies.splice(i, 1);
     }
     updateHUD();
 }
@@ -982,7 +996,6 @@ function spawnBoss() {
 function spawnMinionAround(bx, by) {
     let numMinions = 3 + Math.floor(GAME.wave / 15);
     
-    // O cálculo do limite pode ficar fora do loop para otimização
     let maxMiners = 0;
     if (GAME.wave >= 35) {
         let minerWaveIndex = GAME.wave - 34;
@@ -995,17 +1008,16 @@ function spawnMinionAround(bx, by) {
         let angle = Math.random() * Math.PI * 2; let dist = 120 + Math.random() * 80;
         let x = bx + Math.cos(angle) * dist; let y = by + Math.sin(angle) * dist; let rand = Math.random();
         let e = {x, y, r:18, hp:40+GAME.wave*8, maxHp:40+GAME.wave*8, spd:2+Math.random(), dmg:10, val:15, color:'#933', type:'normal'};
-                
-        if (GAME.wave >= GAME_CONFIG.trapezoid.waveStart && rand < 0.15) { 
-            e.type = 'trapezoid'; e.color = '#0088ff'; e.r = 22; e.hp *= GAME_CONFIG.trapezoid.hpMult; e.maxHp *= GAME_CONFIG.trapezoid.hpMult; e.spd *= 0.8; e.val = 80; e.lastShot = 0; e.fireRate = GAME_CONFIG.trapezoid.fireRate; 
-        } 
-        // --- LINHA DO MINER ATUALIZADA AQUI ---
+        
+        if (GAME.wave >= GAME_CONFIG.trapezoid.waveStart && rand < 0.15) {
+             e.type = 'trapezoid'; e.color = '#0088ff'; e.r = 22; e.hp *= GAME_CONFIG.trapezoid.hpMult; e.maxHp *= GAME_CONFIG.trapezoid.hpMult; e.spd *= 0.8; e.val = 80; e.lastShot = 0; e.fireRate = GAME_CONFIG.trapezoid.fireRate;
+         }
         else if (GAME.wave >= 35 && rand < 0.30 && GAME.minersSpawnedThisWave < maxMiners) {
             e.type = 'miner'; e.color = '#ff00ff'; e.r = 16; e.hp *= 0.5; e.maxHp *= 0.5; e.spd *= 1.8; e.val = 60; e.lastMine = Date.now(); e.mineInterval = Math.max(600, 2500 - (GAME.wave - 35) * 80);
             GAME.minersSpawnedThisWave++;
         }
-        // --------------------------------------
-        else if (GAME.wave >= 17 && rand < 0.45) { 
+        else if (GAME.wave >= 17 && rand < 0.45) {
+             e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100;
          }
          else if (GAME.wave >= 10 && rand < 0.65) {
              e.type = 'juggernaut'; e.color = '#527'; e.r = 28; e.hp *= 3.5; e.maxHp *= 3.5; e.spd *= 0.6; e.val = 50;
@@ -1021,29 +1033,25 @@ function spawnEnemy() {
     let side=Math.floor(Math.random()*4), x, y, rand=Math.random();
     if(side===0){x=Math.random()*W;y=-30} else if(side===1){x=W+30;y=Math.random()*H} else if(side===2){x=Math.random()*W;y=H+30} else{x=-30;y=Math.random()*H}
     let e = {x, y, r:18, hp:40+GAME.wave*8, maxHp:40+GAME.wave*8, spd:2+Math.random(), dmg:10, val:15, color:'#933', type:'normal'};
-        
-    // --- NOVO CÁLCULO DE LIMITE DE MINERS ---
+    
     let maxMiners = 0;
     if (GAME.wave >= 35) {
-        let minerWaveIndex = GAME.wave - 34; // Wave 35 vira 1, Wave 36 vira 2...
-        if (minerWaveIndex <= 4) maxMiners = 1;      // 1ª a 4ª partida (Wave 35-38): Máximo 1
-        else if (minerWaveIndex <= 9) maxMiners = 2; // 5ª a 9ª partida (Wave 39-43): Máximo 2
-        else maxMiners = Math.floor((minerWaveIndex - 10) / 5) + 3; // Escala +1 a cada 5 ondas infinitamente
+        let minerWaveIndex = GAME.wave - 34; 
+        if (minerWaveIndex <= 4) maxMiners = 1;      
+        else if (minerWaveIndex <= 9) maxMiners = 2; 
+        else maxMiners = Math.floor((minerWaveIndex - 10) / 5) + 3; 
     }
-    // ----------------------------------------
 
-    if (GAME.wave >= GAME_CONFIG.trapezoid.waveStart && rand < 0.15) { 
-        e.type = 'trapezoid'; e.color = '#0088ff'; e.r = 22; e.hp *= GAME_CONFIG.trapezoid.hpMult; e.maxHp *= GAME_CONFIG.trapezoid.hpMult; e.spd *= 0.8; e.val = 80; e.lastShot = 0; e.fireRate = GAME_CONFIG.trapezoid.fireRate; 
-    } 
-    // --- LINHA DO MINER ATUALIZADA AQUI ---
+    if (GAME.wave >= GAME_CONFIG.trapezoid.waveStart && rand < 0.15) {
+         e.type = 'trapezoid'; e.color = '#0088ff'; e.r = 22; e.hp *= GAME_CONFIG.trapezoid.hpMult; e.maxHp *= GAME_CONFIG.trapezoid.hpMult; e.spd *= 0.8; e.val = 80; e.lastShot = 0; e.fireRate = GAME_CONFIG.trapezoid.fireRate;
+     }
     else if (GAME.wave >= 35 && rand < 0.30 && GAME.minersSpawnedThisWave < maxMiners) {
         e.type = 'miner'; e.color = '#ff00ff'; e.r = 16; e.hp *= 0.5; e.maxHp *= 0.5; e.spd *= 1.8; e.val = 60; e.lastMine = Date.now(); e.mineInterval = Math.max(600, 2500 - (GAME.wave - 35) * 80);
-        GAME.minersSpawnedThisWave++; // Registra que um Miner nasceu
+        GAME.minersSpawnedThisWave++; 
     }
-    // --------------------------------------
-    else if (GAME.wave >= 17 && rand < 0.45) { 
-        e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100; 
-    } 
+    else if (GAME.wave >= 17 && rand < 0.45) {
+         e.type = 'exploder'; e.color = '#3c4'; e.r = 20; e.hp *= 1.2; e.maxHp *= 1.2; e.spd *= 0.9; e.val = 40; e.explosionRadius = 150; e.explosionDamage = 100;
+     }
      else if (GAME.wave >= 10 && rand < 0.65) {
          e.type = 'juggernaut'; e.color = '#527'; e.r = 28; e.hp *= 3.5; e.maxHp *= 3.5; e.spd *= 0.6; e.val = 50;
      }
